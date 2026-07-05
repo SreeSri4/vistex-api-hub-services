@@ -81,6 +81,11 @@ export async function tenantExists(tenantId: string): Promise<boolean> {
   return tenants.some((t) => t.id === tenantId);
 }
 
+export async function writeTenants(tenants: TenantMeta[]): Promise<void> {
+  await ensureDir(TENANTS_DIR);
+  await fs.writeFile(TENANTS_FILE, JSON.stringify({ tenants }, null, 2), 'utf-8');
+}
+
 /** Thrown by a service's register/getOne/remove methods for expected, user-facing errors. */
 export class ServiceError extends Error {
   status: number;
