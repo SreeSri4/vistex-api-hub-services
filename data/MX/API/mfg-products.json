@@ -1,0 +1,60 @@
+{
+  "id": "mfg-products",
+  "name": "Product Catalog API",
+  "description": "Product & inventory management",
+  "baseUrl": "https://api.manufacturing.com/v1",
+  "version": "1.0.0",
+  "endpoints": [
+    {
+      "path": "/products",
+      "method": "GET",
+      "summary": "List all products",
+      "tags": [
+        "Products"
+      ],
+      "parameters": [
+        {
+          "name": "category",
+          "in": "query",
+          "description": "Product category",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of products"
+        }
+      }
+    },
+    {
+      "path": "/products/{id}",
+      "method": "GET",
+      "summary": "Get product by ID",
+      "tags": [
+        "Products"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "Product ID",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Product details"
+        },
+        "404": {
+          "description": "Product not found"
+        }
+      }
+    }
+  ]
+}

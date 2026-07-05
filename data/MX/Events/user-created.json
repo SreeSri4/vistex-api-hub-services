@@ -1,0 +1,18 @@
+{
+  "id": "user-created",
+  "name": "UserCreated",
+  "description": "Emitted whenever a new user is created in the Manufacturing tenant.",
+  "type": "Kafka",
+  "channel": "mfg.users.created",
+  "version": "1.0.0",
+  "payloadSchema": {
+    "type": "object",
+    "properties": {
+      "userId": { "type": "string" },
+      "email": { "type": "string", "format": "email" },
+      "createdAt": { "type": "string", "format": "date-time" }
+    },
+    "required": ["userId", "email", "createdAt"]
+  },
+  "tags": ["Users"]
+}

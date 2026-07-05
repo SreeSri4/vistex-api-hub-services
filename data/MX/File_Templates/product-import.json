@@ -1,0 +1,14 @@
+{
+  "id": "product-import",
+  "name": "Product Import Template",
+  "description": "CSV layout for bulk-importing products into the catalog.",
+  "format": "CSV",
+  "version": "1.0.0",
+  "fields": [
+    { "name": "sku", "type": "string", "required": true, "description": "Unique product SKU" },
+    { "name": "name", "type": "string", "required": true, "description": "Product display name" },
+    { "name": "category", "type": "string", "required": false, "description": "Product category" },
+    { "name": "price", "type": "number", "required": true, "description": "Unit list price" }
+  ],
+  "sampleContent": "sku,name,category,price\nSKU-1001,Widget A,Widgets,9.99"
+}

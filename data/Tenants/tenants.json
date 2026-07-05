@@ -1,0 +1,19 @@
+{
+  "tenants": [
+    {
+      "id": "MX",
+      "name": "\ud83c\udfed Manufacturing",
+      "description": "Manufacturing Industry"
+    },
+    {
+      "id": "price-staging-hub",
+      "name": "\ud83d\udcca Price Staging Hub",
+      "description": "Price Staging and Catalog Calculations Environment"
+    },
+    {
+      "id": "wholesale-distribution",
+      "name": "\ud83d\ude9a Wholesale Distribution",
+      "description": "Wholesale logistics and partner shipping distribution channels"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+---
+applications:
+  - name: vistex-template-api-hub
+    memory: 100M
+    disk_quota: 512M
+    instances: 1
+    buildpacks:
+      - nodejs_buildpack
+    command: npm start
+    routes:
+      - route: vistex-template-api-hub.cfapps.eu10.hana.ondemand.com
+    env:
+      NODE_ENV: production
+      # Where the split Tenants/API/Events/File_Templates JSON files live.
+      # Defaults to ./data inside the app if unset. On CF this is LOCAL DISK,
+      # which is wiped on every restart/restage and not shared across
+      # instances — fine for a single-instance app, but for durable uploads
+      # bind a persistent volume service and point DATA_DIR at its mount path.
+      DATA_DIR: /home/vcap/app/data
