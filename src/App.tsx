@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TenantDataProvider } from "./context/TenantDataContext";
+import { AppShell } from "./components/AppShell";
 import TenantsPage from "./pages/TenantsPage";
 import ApisPage from "./pages/ApisPage";
 import ApiDetailPage from "./pages/ApiDetailPage";
@@ -10,6 +11,7 @@ export default function App() {
   return (
     <TenantDataProvider>
         <BrowserRouter>
+          <AppShell />
           <Routes>
             <Route path="/" element={<TenantsPage />} />
             <Route path="/tenants/:tenantId" element={<Navigate to="apis" replace />} />

@@ -48,8 +48,10 @@ export default function ApisPage() {
       {loading ? (
         <p className="text-slate-500 mt-8">Loading…</p>
       ) : apis.length === 0 ? (
-        <div className="mt-16 text-center text-slate-500 bg-white border border-dashed border-slate-300 rounded-xl py-16">
-          No APIs yet for this tenant.
+        <div className="empty-state">
+          <p className="text-slate-600">
+            No APIs yet for this tenant.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
@@ -59,23 +61,24 @@ export default function ApisPage() {
               <button
                 key={api.id}
                 onClick={() => navigate(`/tenants/${tenantId}/apis/${api.id}`)}
-                className="text-left bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5"
+                className="catalog-card catalog-card--interactive relative"
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-blue-700 font-semibold text-lg">{api.name}</h2>
+                <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#1D4ED8] rounded-r" />
+                <div className="pl-3 flex items-center justify-between gap-2">
+                  <h2 className="font-display font-semibold text-lg text-[#1E40AF] leading-snug">{api.name}</h2>
                   {api.version && (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">v{api.version}</span>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded flex-shrink-0">v{api.version}</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mt-2">{api.description}</p>
-                {api.baseUrl && <p className="text-xs text-gray-400 mt-2 font-mono">{api.baseUrl}</p>}
-                <div className="flex flex-wrap gap-2 mt-3">
+                <p className="text-sm text-slate-600 mt-2 pl-3">{api.description}</p>
+                {api.baseUrl && <p className="text-xs text-slate-400 mt-2 pl-3 font-mono truncate">{api.baseUrl}</p>}
+                <div className="flex flex-wrap gap-2 mt-3 pl-3 items-center">
                   {methods.map((m) => (
-                    <span key={m} className={`text-xs font-medium px-2 py-0.5 rounded ${methodColor[m] ?? "bg-gray-100 text-gray-600"}`}>
+                    <span key={m} className={`text-xs font-medium px-2 py-0.5 rounded ${methodColor[m] ?? "bg-slate-100 text-slate-600"}`}>
                       {m}
                     </span>
                   ))}
-                  <span className="text-xs text-gray-400 ml-auto">{api.endpoints.length} endpoints</span>
+                  <span className="text-xs text-slate-400 ml-auto">{api.endpoints.length} endpoints</span>
                 </div>
               </button>
             );

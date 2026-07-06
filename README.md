@@ -19,7 +19,31 @@ A centralized web application for managing, exploring, and documenting APIs acro
 
 ---
 
-## Technology Stack
+## Design System
+
+The UI follows a small, consistent set of design tokens rather than ad hoc
+styling per page:
+
+- **Type** — `Space Grotesk` for headings/brand/tab labels (`font-display`),
+  `Inter` for body text (default sans), `JetBrains Mono` for technical
+  strings — base URLs, channels, tenant/API ids (`font-mono`).
+- **Color-coded categories** — APIs, Events, and File Templates each carry
+  their own accent color everywhere they appear (card left-border, tab pill,
+  badges): **blue** `#1D4ED8` for APIs, **violet** `#7C3AED` for Events,
+  **amber** `#B45309` for File Templates. The color itself tells you which
+  part of the catalog you're in.
+- **Persistent app bar** — a slim navy bar (`AppShell`) is shown on every
+  route with the product name and a link back to the tenant list.
+- **Shared building blocks** (`src/index.css`, `@layer components`) —
+  `.catalog-card` / `.catalog-card--interactive` for every list item across
+  Tenants/APIs/Events/File Templates, `.btn-primary` / `.btn-secondary` for
+  actions, and `.empty-state` for empty-list messaging, so all four catalogs
+  look and behave the same way.
+- **Accessibility** — a visible `:focus-visible` outline is defined globally
+  instead of relying on the browser default, so keyboard navigation stays
+  legible against the palette.
+
+---
 
 ### Frontend
 
@@ -37,7 +61,6 @@ A centralized web application for managing, exploring, and documenting APIs acro
 
 ### Utilities
 
-- JSZip
 - js-yaml
 - Multer
 
@@ -49,18 +72,11 @@ A centralized web application for managing, exploring, and documenting APIs acro
 src/
 │
 ├── components/
-│   ├── ApiNode.tsx
-│   ├── DownloadPanel.tsx
-│   ├── Header.tsx
-│   ├── SpecViewer.tsx
-│   ├── TenantTabsHeader.tsx
-│   └── TenantTree.tsx
+│   ├── AppShell.tsx
+│   └── TenantTabsHeader.tsx
 │
 ├── context/
 │   └── TenantDataContext.tsx
-│
-├── hooks/
-│   └── useAppState.ts
 │
 ├── pages/
 │   ├── TenantsPage.tsx
@@ -70,7 +86,6 @@ src/
 │   └── FileTemplatesPage.tsx
 │
 ├── services/
-│   ├── fileParser.ts
 │   └── specConverter.ts
 │
 ├── server/
@@ -98,27 +113,26 @@ src/
 Application Start
         │
         ▼
-Load Tenant Configuration
+Load Tenant List
         │
         ▼
 TenantDataContext
         │
         ▼
-React Router
+   Tenants Page
         │
-        ├──────────────┐
-        ▼              ▼
- Tenants Page      APIs Page
-        │              │
-        ▼              ▼
-Tenant Details    API Details
-        │              │
-        ▼              ▼
-Swagger Viewer  Download Spec
+        ▼
+ Tenant tab bar (APIs / Events / File Templates)
         │
-        ├──────────────┐
-        ▼              ▼
- Events Page   File Templates
+        ├───────────────┬────────────────┐
+        ▼               ▼                ▼
+    APIs Page      Events Page   File Templates Page
+        │
+        ▼
+   API Details
+        │
+        ▼
+Swagger Viewer + Download Spec
 ```
 
 ---
@@ -136,7 +150,7 @@ Each tenant contains:
 - Events
 - File Templates
 
-Selecting a tenant opens its detailed dashboard.
+Selecting a tenant opens its APIs tab (see Tenant Details below).
 
 ---
 

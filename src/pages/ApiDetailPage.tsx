@@ -341,14 +341,12 @@ export default function ApiDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eaf6fe]">
-      <div className="sticky top-0 z-40">
+    <div className="min-h-screen bg-vistex-canvas">
+      <div className="sticky top-12 z-40">
         <div className="bg-[#0f2847] text-[#9fb8d9] text-xs px-6 md:px-10 lg:px-16 py-2 flex items-center gap-2 overflow-x-auto">
-          <button onClick={() => navigate("/")} className="hover:text-white whitespace-nowrap">Explorer</button>
+          <button onClick={() => navigate("/")} className="hover:text-white whitespace-nowrap">Tenants</button>
           <span aria-hidden="true">›</span>
-          <button onClick={() => navigate(`/tenants/${tenantId}`)} className="hover:text-white whitespace-nowrap">{tenant.name}</button>
-          <span aria-hidden="true">›</span>
-          <button onClick={() => navigate(`/tenants/${tenantId}/apis`)} className="hover:text-white whitespace-nowrap">APIs</button>
+          <button onClick={() => navigate(`/tenants/${tenantId}/apis`)} className="hover:text-white whitespace-nowrap">{tenant.name}</button>
           <span aria-hidden="true">›</span>
           <span className="text-white font-medium whitespace-nowrap">{api.name}</span>
         </div>
