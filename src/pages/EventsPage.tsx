@@ -41,7 +41,7 @@ export default function EventsPage() {
       ) : events.length === 0 ? (
         <div className="empty-state">
           <p className="text-slate-600">
-            No events yet for this tenant.
+            No Events yet for this tenant.
           </p>
         </div>
       ) : (
