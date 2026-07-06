@@ -1,7 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TenantDataProvider } from "./context/TenantDataContext";
 import TenantsPage from "./pages/TenantsPage";
-import TenantDetailPage from "./pages/TenantDetailPage";
 import ApisPage from "./pages/ApisPage";
 import ApiDetailPage from "./pages/ApiDetailPage";
 import EventsPage from "./pages/EventsPage";
@@ -13,7 +12,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<TenantsPage />} />
-            <Route path="/tenants/:tenantId" element={<TenantDetailPage />} />
+            <Route path="/tenants/:tenantId" element={<Navigate to="apis" replace />} />
             <Route path="/tenants/:tenantId/apis" element={<ApisPage />} />
             <Route path="/tenants/:tenantId/apis/:apiId" element={<ApiDetailPage />} />
             <Route path="/tenants/:tenantId/events" element={<EventsPage />} />

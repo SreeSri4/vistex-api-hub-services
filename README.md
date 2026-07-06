@@ -53,6 +53,7 @@ src/
 │   ├── DownloadPanel.tsx
 │   ├── Header.tsx
 │   ├── SpecViewer.tsx
+│   ├── TenantTabsHeader.tsx
 │   └── TenantTree.tsx
 │
 ├── context/
@@ -63,7 +64,6 @@ src/
 │
 ├── pages/
 │   ├── TenantsPage.tsx
-│   ├── TenantDetailPage.tsx
 │   ├── ApisPage.tsx
 │   ├── ApiDetailPage.tsx
 │   ├── EventsPage.tsx
@@ -142,13 +142,15 @@ Selecting a tenant opens its detailed dashboard.
 
 ## Tenant Details
 
-Displays:
+Selecting a tenant opens a tabbed dashboard — **APIs / Events / File
+Templates** — with a centered, pill-styled tab bar (`TenantTabsHeader`) at
+the top of each tab for switching between them. This replaced the earlier
+tile/pane grid layout on the tenant detail page. Visiting a tenant
+(`/tenants/:tenantId`) redirects straight to its **APIs** tab.
 
-- Tenant metadata
-- Available APIs
-- Event list
-- File Templates
-- Summary information
+- **APIs** — full API list for the tenant
+- **Events** — full event catalog for the tenant
+- **File Templates** — full template list for the tenant
 
 ---
 

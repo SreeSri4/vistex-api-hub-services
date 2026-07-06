@@ -68,6 +68,9 @@ export async function writeTenants(tenants) {
     await ensureDir(TENANTS_DIR);
     await fs.writeFile(TENANTS_FILE, JSON.stringify({ tenants }, null, 2), 'utf-8');
 }
+export async function removeTenantDir(tenantId) {
+    await fs.rm(tenantDir(tenantId), { recursive: true, force: true });
+}
 /** Thrown by a service's register/getOne/remove methods for expected, user-facing errors. */
 export class ServiceError extends Error {
     constructor(message, status = 400) {

@@ -33,7 +33,7 @@ export default function TenantsPage() {
           {tenants.map((tenant) => (
             <button
               key={tenant.id}
-              onClick={() => navigate(`/tenants/${tenant.id}`)}
+              onClick={() => navigate(`/tenants/${tenant.id}/apis`)}
               className="text-left bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 relative"
             >
               <span className="absolute left-0 top-5 bottom-5 w-1 bg-blue-600 rounded-r" />
