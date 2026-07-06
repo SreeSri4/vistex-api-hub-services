@@ -2,18 +2,23 @@
   "tenants": [
     {
       "id": "MX",
-      "name": "\ud83c\udfed Manufacturing",
+      "name": "🏭 Manufacturing",
       "description": "Manufacturing Industry"
     },
     {
       "id": "price-staging-hub",
-      "name": "\ud83d\udcca Price Staging Hub",
+      "name": "📊 Price Staging Hub",
       "description": "Price Staging and Catalog Calculations Environment"
     },
     {
       "id": "wholesale-distribution",
-      "name": "\ud83d\ude9a Wholesale Distribution",
+      "name": "🚚 Wholesale Distribution",
       "description": "Wholesale logistics and partner shipping distribution channels"
+    },
+    {
+      "id": "ETM",
+      "name": "Excise Tax",
+      "description": "Excise Tax Management Industry"
     }
   ]
 }

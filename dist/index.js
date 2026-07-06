@@ -27,6 +27,29 @@ function handleServiceError(err, res, fallback) {
     }
     res.status(500).json({ error: err?.message ?? fallback });
 }
+// Upload handling: JSON files only, kept in memory just long enough to
+// validate + hand off to the matching service (tenants or a category).
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB is plenty for a spec/template JSON
+});
+function parseUploadedJson(req, res) {
+    if (!req.file) {
+        res.status(400).json({ error: 'No file uploaded (expected form field "file").' });
+        return undefined;
+    }
+    if (!req.file.originalname.toLowerCase().endsWith('.json')) {
+        res.status(400).json({ error: 'Only .json files are accepted.' });
+        return undefined;
+    }
+    try {
+        return JSON.parse(req.file.buffer.toString('utf-8'));
+    }
+    catch {
+        res.status(400).json({ error: 'Uploaded file is not valid JSON.' });
+        return undefined;
+    }
+}
 // ---------------------------------------------------------------------------
 // API routes
 // ---------------------------------------------------------------------------
@@ -62,6 +85,22 @@ app.get('/api/tenants/:tenantId/summary', async (req, res) => {
     }
     catch (err) {
         handleServiceError(err, res, 'Failed to load summary.');
+    }
+});
+// POST /api/tenants/upload -> register a new tenant from a JSON file
+// ({ id?, name, description? }). Also creates the tenant's API / Events /
+// File_Templates folders up front so it's immediately ready for uploads.
+app.post('/api/tenants/upload', upload.single('file'), async (req, res) => {
+    try {
+        const parsed = parseUploadedJson(req, res);
+        if (parsed === undefined)
+            return;
+        const tenant = await tenantService.register(parsed);
+        const tenants = await tenantService.list();
+        res.json({ ok: true, tenant, tenants });
+    }
+    catch (err) {
+        handleServiceError(err, res, 'Failed to register tenant.');
     }
 });
 // Generic list / get-one / delete for each of apis, events, file-templates.
@@ -101,33 +140,14 @@ for (const category of CATEGORIES) {
         }
     });
 }
-// Upload handling: JSON files only, kept in memory just long enough to
-// validate + hand off to the matching category service.
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB is plenty for a spec/template JSON
-});
 app.post('/api/tenants/:tenantId/:category(apis|events|file-templates)/upload', upload.single('file'), async (req, res) => {
     try {
         const category = req.params.category;
         const { tenantId } = req.params;
         const service = CATEGORY_SERVICES[category];
-        if (!req.file) {
-            res.status(400).json({ error: 'No file uploaded (expected form field "file").' });
+        const parsed = parseUploadedJson(req, res);
+        if (parsed === undefined)
             return;
-        }
-        if (!req.file.originalname.toLowerCase().endsWith('.json')) {
-            res.status(400).json({ error: 'Only .json files are accepted.' });
-            return;
-        }
-        let parsed;
-        try {
-            parsed = JSON.parse(req.file.buffer.toString('utf-8'));
-        }
-        catch {
-            res.status(400).json({ error: 'Uploaded file is not valid JSON.' });
-            return;
-        }
         // Registering creates the tenant's category folder (API / Events /
         // File_Templates) on first use and writes the item as its own JSON file.
         const item = await service.register(tenantId, parsed);

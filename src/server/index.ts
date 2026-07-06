@@ -139,6 +139,17 @@ app.post('/api/tenants/upload', upload.single('file'), async (req, res) => {
   }
 });
 
+// DELETE /api/tenants/:tenantId -> remove a tenant and its entire data
+// folder (API/, Events/, File_Templates/, everything). Irreversible.
+app.delete('/api/tenants/:tenantId', async (req, res) => {
+  try {
+    await tenantService.remove(req.params.tenantId);
+    res.json({ ok: true });
+  } catch (err: any) {
+    handleServiceError(err, res, 'Failed to delete tenant.');
+  }
+});
+
 // Generic list / get-one / delete for each of apis, events, file-templates.
 // Each route simply delegates to that category's dedicated registration
 // service — the folder + JSON file mechanics live in the service, not here.

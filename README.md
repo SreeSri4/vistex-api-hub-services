@@ -12,7 +12,7 @@ A centralized web application for managing, exploring, and documenting APIs acro
 - API details with endpoint documentation
 - Event catalog
 - File template management
-- JSON configuration upload
+- JSON configuration registration via backend service endpoints
 - Download OpenAPI specifications (JSON/YAML)
 - Cloud Foundry deployment support
 - Modern React + TypeScript UI
@@ -51,7 +51,6 @@ src/
 ├── components/
 │   ├── ApiNode.tsx
 │   ├── DownloadPanel.tsx
-│   ├── FileUploadArea.tsx
 │   ├── Header.tsx
 │   ├── SpecViewer.tsx
 │   └── TenantTree.tsx
@@ -255,6 +254,11 @@ writing to their own folder:
 `DATA_DIR` defaults to `./data` and can be overridden with an environment
 variable (see the Cloud Foundry section below).
 
+> **Note:** registration is done entirely through these backend endpoints
+> (curl, Postman, CI scripts, etc.) — there is no "Upload" button in the
+> UI. The frontend is read-only: it lists and browses tenants, APIs,
+> Events, and File Templates that were registered via the endpoints below.
+
 ## Tenants
 
 | Method | Endpoint | Description |
@@ -263,6 +267,7 @@ variable (see the Cloud Foundry section below).
 | GET | `/api/tenants/:tenantId` | Get a single tenant's metadata |
 | GET | `/api/tenants/:tenantId/summary` | Get API / Event / File Template counts for a tenant |
 | POST | `/api/tenants/upload` | Register a new tenant |
+| DELETE | `/api/tenants/:tenantId` | Delete a tenant and its entire data folder |
 
 ### Registering a tenant (upload)
 
@@ -292,6 +297,18 @@ On success, `tenantService`:
    separate "initialize folders" step needed
 5. Responds with `{ ok: true, tenant, tenants }` — the newly registered
    tenant plus the full refreshed tenant list
+
+### Deleting a tenant
+
+```bash
+curl -X DELETE http://localhost:3000/api/tenants/ETM
+```
+
+This is **destructive and irreversible**: `tenantService.remove` removes
+the tenant's entry from `Tenants/tenants.json` and recursively deletes its
+entire data folder — `API/`, `Events/`, `File_Templates/`, and anything
+else under `<DATA_DIR>/<tenant_id>/`. Returns 404 if the tenant id doesn't
+exist, otherwise `{ ok: true }`.
 
 ## APIs, Events & File Templates
 

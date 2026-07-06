@@ -64,6 +64,10 @@ export async function tenantExists(tenantId) {
     const tenants = await getTenants();
     return tenants.some((t) => t.id === tenantId);
 }
+export async function writeTenants(tenants) {
+    await ensureDir(TENANTS_DIR);
+    await fs.writeFile(TENANTS_FILE, JSON.stringify({ tenants }, null, 2), 'utf-8');
+}
 /** Thrown by a service's register/getOne/remove methods for expected, user-facing errors. */
 export class ServiceError extends Error {
     constructor(message, status = 400) {

@@ -86,6 +86,10 @@ export async function writeTenants(tenants: TenantMeta[]): Promise<void> {
   await fs.writeFile(TENANTS_FILE, JSON.stringify({ tenants }, null, 2), 'utf-8');
 }
 
+export async function removeTenantDir(tenantId: string): Promise<void> {
+  await fs.rm(tenantDir(tenantId), { recursive: true, force: true });
+}
+
 /** Thrown by a service's register/getOne/remove methods for expected, user-facing errors. */
 export class ServiceError extends Error {
   status: number;

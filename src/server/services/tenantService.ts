@@ -1,4 +1,13 @@
-import { ensureDir, getTenants, listJsonFiles, ServiceError, slugify, TenantMeta, writeTenants } from './dataStore.js';
+import {
+  ensureDir,
+  getTenants,
+  listJsonFiles,
+  removeTenantDir,
+  ServiceError,
+  slugify,
+  TenantMeta,
+  writeTenants,
+} from './dataStore.js';
 import { apiService } from './apiService.js';
 import { eventService } from './eventService.js';
 import { fileTemplateService } from './fileTemplateService.js';
@@ -69,5 +78,22 @@ export const tenantService = {
     ]);
 
     return tenant;
+  },
+
+  /**
+   * Removes a tenant: deletes its entry from Tenants/tenants.json and
+   * recursively deletes its entire data folder (API/, Events/,
+   * File_Templates/, and anything else under it). This is destructive and
+   * irreversible - all of that tenant's registered items go with it.
+   */
+  async remove(tenantId: string): Promise<void> {
+    const tenants = await getTenants();
+    const exists = tenants.some((t) => t.id === tenantId);
+    if (!exists) {
+      throw new ServiceError(`Tenant '${tenantId}' not found.`, 404);
+    }
+
+    await writeTenants(tenants.filter((t) => t.id !== tenantId));
+    await removeTenantDir(tenantId);
   },
 };
