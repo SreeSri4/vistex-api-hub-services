@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TenantTabsHeader } from "../components/TenantTabsHeader";
+import { SearchInput } from "../components/SearchInput";
 import type { EventSpec } from "../types/tenant";
 
 export default function EventsPage() {
@@ -9,6 +10,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventSpec[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     if (!tenantId) return;
@@ -30,9 +32,28 @@ export default function EventsPage() {
     load();
   }, [load]);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter(
+      (event) =>
+        event.name.toLowerCase().includes(q) ||
+        event.description?.toLowerCase().includes(q) ||
+        event.channel?.toLowerCase().includes(q) ||
+        event.type?.toLowerCase().includes(q) ||
+        event.tags?.some((tag) => tag.toLowerCase().includes(q))
+    );
+  }, [events, query]);
+
   return (
     <div className="w-full px-6 md:px-10 lg:px-16 py-10">
       <TenantTabsHeader />
+
+      {events.length > 0 && (
+        <div className="flex justify-end mt-6">
+          <SearchInput value={query} onChange={setQuery} placeholder="Find an Event" />
+        </div>
+      )}
 
       {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
@@ -44,9 +65,13 @@ export default function EventsPage() {
             No Events yet for this tenant.
           </p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-slate-600">No events match "{query}".</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
-          {events.map((event) => (
+          {filtered.map((event) => (
             <div key={event.id} className="catalog-card relative">
               <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#7C3AED] rounded-r" />
               <div className="pl-3 flex items-center justify-between gap-2">

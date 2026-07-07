@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TenantTabsHeader } from "../components/TenantTabsHeader";
+import { SearchInput } from "../components/SearchInput";
 import type { ApiSpec } from "../types/tenant";
 
 const methodColor: Record<string, string> = {
@@ -18,6 +19,7 @@ export default function ApisPage() {
   const [apis, setApis] = useState<ApiSpec[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     if (!tenantId) return;
@@ -39,9 +41,26 @@ export default function ApisPage() {
     load();
   }, [load]);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return apis;
+    return apis.filter(
+      (api) =>
+        api.name.toLowerCase().includes(q) ||
+        api.description?.toLowerCase().includes(q) ||
+        api.baseUrl?.toLowerCase().includes(q)
+    );
+  }, [apis, query]);
+
   return (
     <div className="w-full px-6 md:px-10 lg:px-16 py-10">
       <TenantTabsHeader />
+
+      {apis.length > 0 && (
+        <div className="flex justify-end mt-6">
+          <SearchInput value={query} onChange={setQuery} placeholder="Find an API" />
+        </div>
+      )}
 
       {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
@@ -53,9 +72,13 @@ export default function ApisPage() {
             No APIs yet for this tenant.
           </p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-slate-600">No APIs match "{query}".</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
-          {apis.map((api) => {
+          {filtered.map((api) => {
             const methods = Array.from(new Set(api.endpoints.map((e) => e.method.toUpperCase())));
             return (
               <button

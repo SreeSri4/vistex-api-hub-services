@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { TenantTabsHeader } from "../components/TenantTabsHeader";
+import { SearchInput } from "../components/SearchInput";
 import type { FileTemplateSpec } from "../types/tenant";
 
 export default function FileTemplatesPage() {
@@ -9,6 +10,7 @@ export default function FileTemplatesPage() {
   const [templates, setTemplates] = useState<FileTemplateSpec[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     if (!tenantId) return;
@@ -30,9 +32,26 @@ export default function FileTemplatesPage() {
     load();
   }, [load]);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return templates;
+    return templates.filter(
+      (tpl) =>
+        tpl.name.toLowerCase().includes(q) ||
+        tpl.description?.toLowerCase().includes(q) ||
+        tpl.format?.toLowerCase().includes(q)
+    );
+  }, [templates, query]);
+
   return (
     <div className="w-full px-6 md:px-10 lg:px-16 py-10">
       <TenantTabsHeader />
+
+      {templates.length > 0 && (
+        <div className="flex justify-end mt-6">
+          <SearchInput value={query} onChange={setQuery} placeholder="Find a File Template" />
+        </div>
+      )}
 
       {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
@@ -41,12 +60,16 @@ export default function FileTemplatesPage() {
       ) : templates.length === 0 ? (
         <div className="empty-state">
           <p className="text-slate-600">
-            No File Templates yet for this tenant.
+            No File Templates yet for this tenant. 
           </p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state">
+          <p className="text-slate-600">No file templates match "{query}".</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
-          {templates.map((tpl) => (
+          {filtered.map((tpl) => (
             <div key={tpl.id} className="catalog-card relative">
               <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#B45309] rounded-r" />
               <div className="pl-3 flex items-center justify-between gap-2">

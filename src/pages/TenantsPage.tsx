@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTenantData } from "../context/TenantDataContext";
+import { SearchInput } from "../components/SearchInput";
 
 export default function TenantsPage() {
   const { tenants, loaded, error, refresh } = useTenantData();
@@ -22,29 +23,15 @@ export default function TenantsPage() {
           <h1 className="text-slate-900">Tenants</h1>
           <p className="text-slate-600 mt-1">Browse the APIs, Events, and File Templates each tenant exposes.</p>
         </div>
-        <button onClick={() => refresh()} className="btn-secondary">
-          Refresh
-        </button>
-      </div>
-
-      {tenants.length > 0 && (
-        <div className="relative mt-6 max-w-sm">
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-            <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Find a tenant…"
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-          />
+        <div className="flex flex-col items-end gap-3">
+          <button onClick={() => refresh()} className="btn-secondary">
+            Refresh
+          </button>
+          {tenants.length > 0 && (
+            <SearchInput value={query} onChange={setQuery} placeholder="Find a Tenant" />
+          )}
         </div>
-      )}
+      </div>
 
       {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
@@ -53,8 +40,7 @@ export default function TenantsPage() {
       ) : tenants.length === 0 ? (
         <div className="empty-state">
           <p className="text-slate-600">
-            No tenants found. Register one via{" "}
-            <code className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">POST /api/tenants/upload</code>.
+            No Tenants found.
           </p>
         </div>
       ) : filtered.length === 0 ? (
