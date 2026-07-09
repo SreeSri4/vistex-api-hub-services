@@ -15,6 +15,14 @@ export interface RegistrationServiceOptions {
   label: string;
   /** Folder name created under the tenant's directory, e.g. "API", "Events", "File_Templates". */
   folderName: string;
+  /**
+   * Optional pre-processing step run on the raw incoming payload before
+   * validation, e.g. expanding a simplified upstream format (like a flat
+   * ABAP-friendly API shape) into the richer canonical shape the app
+   * stores and renders. Runs before `validate` and before the "name"/"id"
+   * checks, so it can also normalize those fields if needed.
+   */
+  transform?: (payload: any) => any;
   /** Optional extra validation beyond the common "name"/"id" checks. Throw ServiceError to reject. */
   validate?: (payload: any) => void;
 }
@@ -29,11 +37,13 @@ export interface RegistrationServiceOptions {
 export class RegistrationService {
   private readonly label: string;
   private readonly folderName: string;
+  private readonly transform?: (payload: any) => any;
   private readonly validate?: (payload: any) => void;
 
   constructor(options: RegistrationServiceOptions) {
     this.label = options.label;
     this.folderName = options.folderName;
+    this.transform = options.transform;
     this.validate = options.validate;
   }
 
@@ -78,6 +88,11 @@ export class RegistrationService {
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       throw new ServiceError(`${this.label} JSON must be a single object (not an array).`);
     }
+
+    if (this.transform) {
+      payload = this.transform(payload);
+    }
+
     if (!payload.name || typeof payload.name !== 'string') {
       throw new ServiceError(`${this.label} JSON must include a "name" field.`);
     }

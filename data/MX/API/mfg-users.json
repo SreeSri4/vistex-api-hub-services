@@ -11,6 +11,12 @@
   "license": {
     "name": "Apache 2.0"
   },
+  "tags": [
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    }
+  ],
   "endpoints": [
     {
       "path": "/users",
@@ -147,12 +153,6 @@
           "description": "User not found"
         }
       }
-    }
-  ],
-  "tags": [
-    {
-      "name": "Users",
-      "description": "User management endpoints"
     }
   ]
 }

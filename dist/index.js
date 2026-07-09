@@ -1,5 +1,4 @@
 import express from 'express';
-import multer from 'multer';
 import path from 'path';
 import { DATA_DIR, ServiceError } from './services/dataStore.js';
 import { tenantService } from './services/tenantService.js';
@@ -8,6 +7,18 @@ import { eventService } from './services/eventService.js';
 import { fileTemplateService } from './services/fileTemplateService.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
+// Parse JSON request bodies (5mb is plenty for a spec/template JSON).
+app.use(express.json({ limit: '5mb' }));
+// Malformed JSON in a request body throws a SyntaxError from the parser
+// above; without this handler Express would fall through to its default
+// HTML error page instead of a clean JSON 400.
+app.use((err, _req, res, next) => {
+    if (err?.type === 'entity.parse.failed' || err instanceof SyntaxError) {
+        res.status(400).json({ error: 'Request body is not valid JSON.' });
+        return;
+    }
+    next(err);
+});
 // Base data/static paths off the process working directory rather than
 // __dirname. __dirname's depth differs between dev (tsx running the .ts
 // file straight out of src/server/) and prod (tsc flattens the compiled
@@ -27,28 +38,16 @@ function handleServiceError(err, res, fallback) {
     }
     res.status(500).json({ error: err?.message ?? fallback });
 }
-// Upload handling: JSON files only, kept in memory just long enough to
-// validate + hand off to the matching service (tenants or a category).
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB is plenty for a spec/template JSON
-});
-function parseUploadedJson(req, res) {
-    if (!req.file) {
-        res.status(400).json({ error: 'No file uploaded (expected form field "file").' });
+// Upload routes now take the item's JSON directly as the request body
+// (Content-Type: application/json) rather than a multipart file. This just
+// confirms a body actually arrived and is an object before handing it to a
+// service's register() method, which does the real field-level validation.
+function requireJsonBody(req, res) {
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+        res.status(400).json({ error: 'Request body must be a JSON object (set Content-Type: application/json).' });
         return undefined;
     }
-    if (!req.file.originalname.toLowerCase().endsWith('.json')) {
-        res.status(400).json({ error: 'Only .json files are accepted.' });
-        return undefined;
-    }
-    try {
-        return JSON.parse(req.file.buffer.toString('utf-8'));
-    }
-    catch {
-        res.status(400).json({ error: 'Uploaded file is not valid JSON.' });
-        return undefined;
-    }
+    return req.body;
 }
 // ---------------------------------------------------------------------------
 // API routes
@@ -87,12 +86,12 @@ app.get('/api/tenants/:tenantId/summary', async (req, res) => {
         handleServiceError(err, res, 'Failed to load summary.');
     }
 });
-// POST /api/tenants/upload -> register a new tenant from a JSON file
+// POST /api/tenants/upload -> register a new tenant from a JSON body
 // ({ id?, name, description? }). Also creates the tenant's API / Events /
 // File_Templates folders up front so it's immediately ready for uploads.
-app.post('/api/tenants/upload', upload.single('file'), async (req, res) => {
+app.post('/api/tenants/upload', async (req, res) => {
     try {
-        const parsed = parseUploadedJson(req, res);
+        const parsed = requireJsonBody(req, res);
         if (parsed === undefined)
             return;
         const tenant = await tenantService.register(parsed);
@@ -151,12 +150,12 @@ for (const category of CATEGORIES) {
         }
     });
 }
-app.post('/api/tenants/:tenantId/:category(apis|events|file-templates)/upload', upload.single('file'), async (req, res) => {
+app.post('/api/tenants/:tenantId/:category(apis|events|file-templates)/upload', async (req, res) => {
     try {
         const category = req.params.category;
         const { tenantId } = req.params;
         const service = CATEGORY_SERVICES[category];
-        const parsed = parseUploadedJson(req, res);
+        const parsed = requireJsonBody(req, res);
         if (parsed === undefined)
             return;
         // Registering creates the tenant's category folder (API / Events /

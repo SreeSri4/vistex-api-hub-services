@@ -12,6 +12,7 @@ export class RegistrationService {
     constructor(options) {
         this.label = options.label;
         this.folderName = options.folderName;
+        this.transform = options.transform;
         this.validate = options.validate;
     }
     folderFor(tenantId) {
@@ -50,6 +51,9 @@ export class RegistrationService {
         }
         if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
             throw new ServiceError(`${this.label} JSON must be a single object (not an array).`);
+        }
+        if (this.transform) {
+            payload = this.transform(payload);
         }
         if (!payload.name || typeof payload.name !== 'string') {
             throw new ServiceError(`${this.label} JSON must include a "name" field.`);

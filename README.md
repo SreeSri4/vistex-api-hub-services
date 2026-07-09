@@ -95,6 +95,7 @@ src/
 │       ├── apiService.ts
 │       ├── eventService.ts
 │       ├── fileTemplateService.ts
+│       ├── simpleApiFormat.ts
 │       └── tenantService.ts
 │
 ├── types/
@@ -369,6 +370,167 @@ name. On success, the corresponding service:
 4. Writes the item to `<id>.json` inside that folder
 5. Responds with `{ ok: true, item, items }` — the newly written item plus
    the full refreshed list for that tenant/category
+
+### API registration format — simplified for ABAP
+
+Registering an API (`POST /api/tenants/:tenantId/apis/upload`) does **not**
+require raw OpenAPI JSON. `apiService` accepts a flatter, generic format
+that's easy to produce from an ABAP backend, then expands it server-side
+(`src/server/services/simpleApiFormat.ts`) into the OpenAPI-ready shape
+that gets stored and rendered in Swagger UI. You never have to construct
+OpenAPI's nested `parameters[].in`, `content: { "application/json": {...} }`,
+or JSON-Schema `properties` maps by hand.
+
+```json
+{
+  "name": "Material Master API",
+  "description": "Read and create materials",
+  "baseUrl": "https://s4hana.example.com/sap/opu/odata/sap/MATERIAL_SRV",
+  "version": "1.0.0",
+  "endpoints": [
+    {
+      "path": "/materials/{materialNumber}",
+      "method": "GET",
+      "summary": "Get a material by number",
+      "parameters": [
+        { "name": "materialNumber", "type": "string", "required": true, "description": "Material number" },
+        { "name": "plant", "type": "string", "description": "Plant code" }
+      ],
+      "responses": [
+        {
+          "status": 200,
+          "description": "Material found",
+          "fields": [
+            { "name": "materialNumber", "type": "string" },
+            { "name": "description", "type": "string" },
+            { "name": "baseUnit", "type": "string" }
+          ]
+        },
+        { "status": 404, "description": "Material not found" }
+      ]
+    },
+    {
+      "path": "/materials",
+      "method": "POST",
+      "summary": "Create a material",
+      "requestBodyDescription": "Material to create",
+      "requestFields": [
+        { "name": "materialNumber", "type": "string", "required": true, "example": "MAT-1000" },
+        { "name": "description", "type": "string", "required": true },
+        { "name": "baseUnit", "type": "string" }
+      ],
+      "responses": [
+        { "status": 201, "description": "Created", "fields": [ { "name": "materialNumber", "type": "string" } ] },
+        { "status": 400, "description": "Validation error" }
+      ]
+    }
+  ]
+}
+```
+
+Per endpoint:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `path` | yes | e.g. `/materials/{materialNumber}` — use `{name}` for path segments |
+| `method` | yes | `GET` / `POST` / `PUT` / `PATCH` / `DELETE` (case-insensitive) |
+| `summary` | no | shown in Swagger UI; defaults to `"<METHOD> <path>"` if omitted |
+| `description` | no | longer explanation, shown in Swagger UI |
+| `parameters` | no | flat list: `{ name, type?, format?, example?, required?, description? }` |
+| `requestFields` | no | flat list, same shape as `parameters` — becomes the JSON body schema for `POST`/`PUT`/`PATCH` |
+| `requestBodyDescription` | no | description for the request body itself, separate from any individual field's description |
+| `responses` | no | flat array, one entry per status code: `{ status?, description?, fields? }` — see below |
+
+Each entry in `responses`:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `status` | no | HTTP status code, e.g. `200`, `201`, `400`, `404`. Defaults to `200` |
+| `description` | no | defaults to `"Successful response"` for 2xx, `"Error response"` otherwise |
+| `fields` | no | flat list, same shape as `parameters` — becomes that status's response body schema |
+
+If `responses` is omitted entirely, a single bare `200` is generated
+automatically.
+
+### Nested objects and arrays (structures & tables)
+
+Every field — in `parameters`, `requestFields`, or a response's `fields` —
+can itself be a nested object or an array, not just a scalar. This maps
+directly onto ABAP's own nested structures and internal tables, so a
+material with a nested plant structure, a table of unit codes, and a table
+of batch structures looks like this:
+
+```json
+{
+  "name": "materialNumber",
+  "type": "string"
+},
+{
+  "name": "createdOn",
+  "type": "string",
+  "format": "date"
+},
+{
+  "name": "plant",
+  "type": "object",
+  "fields": [
+    { "name": "plantId", "type": "string" },
+    { "name": "name", "type": "string" }
+  ]
+},
+{
+  "name": "unitsOfMeasure",
+  "type": "array",
+  "itemType": "string"
+},
+{
+  "name": "batches",
+  "type": "array",
+  "items": [
+    { "name": "batchNumber", "type": "string", "required": true },
+    { "name": "quantity", "type": "number" },
+    { "name": "storageLocation", "type": "object", "fields": [
+      { "name": "code", "type": "string" },
+      { "name": "description", "type": "string" }
+    ]}
+  ]
+}
+```
+
+Field reference:
+
+| `type` | Notes |
+|--------|-------|
+| `string` / `integer` / `number` / `boolean` | plain scalar (default is `string`) |
+| `object` | nested structure — describe its own properties in `fields` (same field shape, recursive) |
+| `array` of scalars | an internal table of a single value — set `itemType` (defaults to `string`) |
+| `array` of objects | an internal table of a structure — set `items` to a field list (same shape as `fields`) |
+
+`format` (optional, any scalar field) — a format hint carried straight
+through onto the field's schema, e.g. `"date"`, `"date-time"`, `"email"`,
+or a custom string like `"YYYY-MM-DD"` if that's what your source system
+already uses for date fields.
+
+`example` (optional, any field — scalar, object, or array) — an example
+value carried straight through onto the field's schema and shown in
+Swagger UI, e.g. `"example": "MAT-1000"` on a scalar, or
+`"example": ["EA", "KG"]` on an array field.
+
+This nests to any depth — an object can contain an array of objects that
+themselves contain nested objects, and so on. If you need to drop in a raw
+JSON-Schema fragment directly instead of building it from `fields`/`items`,
+set `schema` on that field and it's used as-is.
+
+Notes:
+
+- **Parameter location is automatic.** You don't specify `in: "query"` or
+  `in: "path"` — it's inferred from whether `{name}` appears in `path`.
+- **`type`** is any JSON-Schema type string (`string`, `integer`, `number`,
+  `boolean`, `array`, `object`); omit it and it defaults to `string`.
+- **Backward compatible.** If an endpoint already includes full OpenAPI
+  shapes (`parameters[].in`/`.schema`, `requestBody`, a `responses` object
+  keyed by status code), those pass through unchanged — the simplified
+  fields above are just a shorthand, not the only accepted format.
 
 ---
 
