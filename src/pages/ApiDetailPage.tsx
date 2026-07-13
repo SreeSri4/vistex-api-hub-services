@@ -4,7 +4,7 @@ import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import { useTenantData } from "../context/TenantDataContext";
 import { convertToOpenAPI, specToJSON, specToYAML } from "../services/specConverter";
-import { expandSimpleApi } from "../services/simpleApiFormat";
+import { expandSimpleApi } from "../shared/simpleApiFormat";
 import type { APIDefinition } from "../types";
 
 const OAUTH_SCOPE = "GtmsApi";
@@ -309,18 +309,23 @@ export default function ApiDetailPage() {
     setOauthError(null);
   };
 
-  // The file on disk stores exactly what was uploaded — often the flatter,
-  // ABAP-friendly endpoint shape (no "in"/content/schema wrapping) rather
-  // than raw OpenAPI. Expand it here, at render time, before building the
-  // OpenAPI 3.0 document, and expose it through the real Swagger UI
-  // component so the page renders/behaves like an actual OpenAPI
-  // documentation site (try-it-out console, schemas, etc). Already
-  // fully OpenAPI-shaped files pass through expandSimpleApi unchanged, so
-  // previously-registered APIs keep rendering correctly too.
-  // We intentionally do NOT declare any securitySchemes on the spec — that
-  // would make Swagger UI render its own native "Authorize" lock/dialog
-  // alongside our custom Authorize panel. Auth is handled entirely by our
-  // own panel + requestInterceptor below.
+  // Build a genuine OpenAPI 3.0 document from the tenant's minimal API
+  // definition, and expose it through the real Swagger UI component so the
+  // page renders/behaves like an actual OpenAPI documentation site
+  // (try-it-out console, schemas, etc). We intentionally do NOT declare any
+  // securitySchemes on the spec — that would make Swagger UI render its own
+  // native "Authorize" lock/dialog alongside our custom Authorize panel.
+  // Auth is handled entirely by our own panel + requestInterceptor below.
+  // Two conversions happen here, both at render time, since the file on
+  // disk is now stored exactly as submitted (no server-side expansion):
+  //   1. expandSimpleApi   — simplified/ABAP-friendly fields (requestFields,
+  //      a flat responses[] array, parameters without "in", etc.) into an
+  //      OpenAPI-shaped endpoints array. A no-op for endpoints that already
+  //      arrived fully OpenAPI-shaped.
+  //   2. convertToOpenAPI  — that OpenAPI-shaped endpoints array into an
+  //      actual OpenAPI 3.0 document (paths keyed by path+method, info,
+  //      servers), which is what Swagger UI and the JSON/YAML export below
+  //      both require.
   const spec = useMemo(() => {
     if (!api) return null;
     const expanded = expandSimpleApi(api);
