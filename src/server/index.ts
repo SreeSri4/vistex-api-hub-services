@@ -19,7 +19,7 @@ app.use(express.json({ limit: '5mb' }));
 // HTML error page instead of a clean JSON 400.
 app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err?.type === 'entity.parse.failed' || err instanceof SyntaxError) {
-    res.status(400).json({ error: 'Request body is not valid JSON.' });
+    res.status(400).json({ status: 'error', message: 'Request body is not valid JSON.' });
     return;
   }
   next(err);
@@ -64,14 +64,28 @@ const CATEGORY_SERVICES: Record<Category, RegistrationService> = {
   'file-templates': fileTemplateService,
 };
 
+const CATEGORY_LABELS: Record<Category, string> = {
+  apis: 'API',
+  events: 'Event',
+  'file-templates': 'File Template',
+};
+
 const CATEGORIES: Category[] = ['apis', 'events', 'file-templates'];
+
+// Every response uses the same small envelope: { status: "success" | "error", message }.
+// Success responses intentionally don't echo back the item/list that was
+// just written — callers already have that (they sent it), and can re-fetch
+// via the corresponding GET route if they need the stored/normalized copy.
+function sendSuccess(res: express.Response, message: string) {
+  res.json({ status: 'success', message });
+}
 
 function handleServiceError(err: any, res: express.Response, fallback: string) {
   if (err instanceof ServiceError) {
-    res.status(err.status).json({ error: err.message });
+    res.status(err.status).json({ status: 'error', message: err.message });
     return;
   }
-  res.status(500).json({ error: err?.message ?? fallback });
+  res.status(500).json({ status: 'error', message: err?.message ?? fallback });
 }
 
 // Upload routes now take the item's JSON directly as the request body
@@ -80,7 +94,7 @@ function handleServiceError(err: any, res: express.Response, fallback: string) {
 // service's register() method, which does the real field-level validation.
 function requireJsonBody(req: express.Request, res: express.Response): any | undefined {
   if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
-    res.status(400).json({ error: 'Request body must be a JSON object (set Content-Type: application/json).' });
+    res.status(400).json({ status: 'error', message: 'Request body must be a JSON object (set Content-Type: application/json).' });
     return undefined;
   }
   return req.body;
@@ -105,7 +119,7 @@ app.get('/api/tenants/:tenantId', async (req, res) => {
   try {
     const tenant = await tenantService.getOne(req.params.tenantId);
     if (!tenant) {
-      res.status(404).json({ error: 'Tenant not found.' });
+      res.status(404).json({ status: 'error', message: 'Tenant not found.' });
       return;
     }
     res.json(tenant);
@@ -133,8 +147,7 @@ app.post('/api/tenants/upload', async (req, res) => {
     if (parsed === undefined) return;
 
     const tenant = await tenantService.register(parsed);
-    const tenants = await tenantService.list();
-    res.json({ ok: true, tenant, tenants });
+    sendSuccess(res, `Tenant '${tenant.id}' registered successfully.`);
   } catch (err: any) {
     handleServiceError(err, res, 'Failed to register tenant.');
   }
@@ -145,7 +158,7 @@ app.post('/api/tenants/upload', async (req, res) => {
 app.delete('/api/tenants/:tenantId', async (req, res) => {
   try {
     await tenantService.remove(req.params.tenantId);
-    res.json({ ok: true });
+    sendSuccess(res, `Tenant '${req.params.tenantId}' deleted successfully.`);
   } catch (err: any) {
     handleServiceError(err, res, 'Failed to delete tenant.');
   }
@@ -170,7 +183,7 @@ for (const category of CATEGORIES) {
     try {
       const item = await service.getOne(req.params.tenantId, req.params.itemId);
       if (!item) {
-        res.status(404).json({ error: 'Not found.' });
+        res.status(404).json({ status: 'error', message: 'Not found.' });
         return;
       }
       res.json(item);
@@ -182,7 +195,7 @@ for (const category of CATEGORIES) {
   app.delete(`/api/tenants/:tenantId/${category}/:itemId`, async (req, res) => {
     try {
       await service.remove(req.params.tenantId, req.params.itemId);
-      res.json({ ok: true });
+      sendSuccess(res, `${CATEGORY_LABELS[category]} '${req.params.itemId}' deleted successfully.`);
     } catch (err: any) {
       handleServiceError(err, res, 'Failed to delete item.');
     }
@@ -203,8 +216,7 @@ app.post(
       // Registering creates the tenant's category folder (API / Events /
       // File_Templates) on first use and writes the item as its own JSON file.
       const item = await service.register(tenantId, parsed);
-      const items = await service.list(tenantId);
-      res.json({ ok: true, item, items });
+      sendSuccess(res, `${CATEGORY_LABELS[category]} '${item.id}' registered successfully.`);
     } catch (err: any) {
       handleServiceError(err, res, 'Upload failed.');
     }

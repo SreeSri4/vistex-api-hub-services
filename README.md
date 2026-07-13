@@ -311,8 +311,9 @@ On success, `tenantService`:
    up front (empty)** — so it's immediately ready to receive uploads via
    the `apis`/`events`/`file-templates` upload routes below, with no
    separate "initialize folders" step needed
-5. Responds with `{ ok: true, tenant, tenants }` — the newly registered
-   tenant plus the full refreshed tenant list
+5. Responds with `{ "status": "success", "message": "Tenant '<id>' registered
+   successfully." }` — it doesn't echo back the tenant or tenant list; fetch
+   `GET /api/tenants` or `GET /api/tenants/:tenantId` if you need those
 
 ### Deleting a tenant
 
@@ -323,8 +324,9 @@ curl -X DELETE http://localhost:3000/api/tenants/ETM
 This is **destructive and irreversible**: `tenantService.remove` removes
 the tenant's entry from `Tenants/tenants.json` and recursively deletes its
 entire data folder — `API/`, `Events/`, `File_Templates/`, and anything
-else under `<DATA_DIR>/<tenant_id>/`. Returns 404 if the tenant id doesn't
-exist, otherwise `{ ok: true }`.
+else under `<DATA_DIR>/<tenant_id>/`. Returns `{ "status": "error", "message": "..." }`
+with a 404 if the tenant id doesn't exist, otherwise
+`{ "status": "success", "message": "Tenant '<id>' deleted successfully." }`.
 
 ## APIs, Events & File Templates
 
@@ -371,8 +373,16 @@ name. On success, the corresponding service:
 3. Creates the tenant's category folder (`API` / `Events` / `File_Templates`)
    if it doesn't already exist
 4. Writes the item to `<id>.json` inside that folder
-5. Responds with `{ ok: true, item, items }` — the newly written item plus
-   the full refreshed list for that tenant/category
+5. Responds with `{ "status": "success", "message": "API '<id>' registered
+   successfully." }` (label matches the category — `Event`, `File Template`)
+   — it doesn't echo back the item or list; fetch
+   `GET /api/tenants/:tenantId/apis` (or `events`/`file-templates`) if you
+   need the stored copy or the full list
+
+All error responses across every route — validation failures, unknown
+tenant/item, malformed JSON body, duplicate ids — use the same shape:
+`{ "status": "error", "message": "..." }`, with an appropriate HTTP status
+code (400/404/409/500).
 
 ### API registration format — simplified for ABAP
 
