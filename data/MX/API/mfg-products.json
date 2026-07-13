@@ -15,19 +15,16 @@
       "parameters": [
         {
           "name": "category",
-          "in": "query",
-          "description": "Product category",
-          "required": false,
-          "schema": {
-            "type": "string"
-          }
+          "type": "string",
+          "description": "Product category"
         }
       ],
-      "responses": {
-        "200": {
+      "responses": [
+        {
+          "status": 200,
           "description": "List of products"
         }
-      }
+      ]
     },
     {
       "path": "/products/{id}",
@@ -39,22 +36,21 @@
       "parameters": [
         {
           "name": "id",
-          "in": "path",
-          "description": "Product ID",
+          "type": "string",
           "required": true,
-          "schema": {
-            "type": "string"
-          }
+          "description": "Product ID"
         }
       ],
-      "responses": {
-        "200": {
+      "responses": [
+        {
+          "status": 200,
           "description": "Product details"
         },
-        "404": {
+        {
+          "status": 404,
           "description": "Product not found"
         }
-      }
+      ]
     }
   ]
 }

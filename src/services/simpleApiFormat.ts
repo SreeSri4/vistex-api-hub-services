@@ -2,9 +2,17 @@
  * ABAP backends don't naturally produce OpenAPI's nested shapes — parameter
  * "in" locations, `content: { "application/json": { schema: {...} } }`
  * wrappers, JSON-Schema `properties` maps. This module accepts a much
- * flatter, generic format instead and expands it into the richer shape the
- * app already stores on disk and feeds to Swagger UI (via
- * `services/specConverter.ts` on the frontend).
+ * flatter, generic format instead and expands it into the richer shape
+ * Swagger UI needs.
+ *
+ * NOTE: The registered API JSON is now stored on disk exactly as it was
+ * uploaded (see `server/services/apiService.ts` — no `transform` step runs
+ * at registration time anymore). This expansion instead runs at *render*
+ * time, in `pages/ApiDetailPage.tsx`, immediately before the result is fed
+ * into `services/specConverter.ts#convertToOpenAPI`. Already fully
+ * OpenAPI-shaped payloads still pass through unchanged either way, so
+ * previously-registered files with expanded endpoints keep rendering
+ * correctly too.
  *
  * Simple upload shape (per endpoint):
  * {

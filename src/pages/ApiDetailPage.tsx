@@ -4,6 +4,7 @@ import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import { useTenantData } from "../context/TenantDataContext";
 import { convertToOpenAPI, specToJSON, specToYAML } from "../services/specConverter";
+import { expandSimpleApi } from "../services/simpleApiFormat";
 import type { APIDefinition } from "../types";
 
 const OAUTH_SCOPE = "GtmsApi";
@@ -308,16 +309,22 @@ export default function ApiDetailPage() {
     setOauthError(null);
   };
 
-  // Build a genuine OpenAPI 3.0 document from the tenant's minimal API
-  // definition, and expose it through the real Swagger UI component so the
-  // page renders/behaves like an actual OpenAPI documentation site
-  // (try-it-out console, schemas, etc). We intentionally do NOT declare any
-  // securitySchemes on the spec — that would make Swagger UI render its own
-  // native "Authorize" lock/dialog alongside our custom Authorize panel.
-  // Auth is handled entirely by our own panel + requestInterceptor below.
+  // The file on disk stores exactly what was uploaded — often the flatter,
+  // ABAP-friendly endpoint shape (no "in"/content/schema wrapping) rather
+  // than raw OpenAPI. Expand it here, at render time, before building the
+  // OpenAPI 3.0 document, and expose it through the real Swagger UI
+  // component so the page renders/behaves like an actual OpenAPI
+  // documentation site (try-it-out console, schemas, etc). Already
+  // fully OpenAPI-shaped files pass through expandSimpleApi unchanged, so
+  // previously-registered APIs keep rendering correctly too.
+  // We intentionally do NOT declare any securitySchemes on the spec — that
+  // would make Swagger UI render its own native "Authorize" lock/dialog
+  // alongside our custom Authorize panel. Auth is handled entirely by our
+  // own panel + requestInterceptor below.
   const spec = useMemo(() => {
     if (!api) return null;
-    return convertToOpenAPI(api as unknown as APIDefinition);
+    const expanded = expandSimpleApi(api);
+    return convertToOpenAPI(expanded as unknown as APIDefinition);
   }, [api]);
 
   if (api === undefined) {

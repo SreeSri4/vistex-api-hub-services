@@ -29,57 +29,43 @@
       "parameters": [
         {
           "name": "page",
-          "in": "query",
-          "description": "Page number",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "example": 1
-          }
+          "type": "integer",
+          "example": 1,
+          "description": "Page number"
         },
         {
           "name": "limit",
-          "in": "query",
-          "description": "Items per page",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "example": 20
-          }
+          "type": "integer",
+          "example": 20,
+          "description": "Items per page"
         }
       ],
-      "responses": {
-        "200": {
-          "description": "Successful response",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "users": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        }
-                      }
-                    }
-                  }
+      "responses": [
+        {
+          "status": 200,
+          "fields": [
+            {
+              "name": "users",
+              "type": "array",
+              "items": [
+                {
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "name": "email",
+                  "type": "string",
+                  "format": "email"
                 }
-              }
+              ]
             }
-          }
+          ]
         }
-      }
+      ]
     },
     {
       "path": "/users",
@@ -89,42 +75,35 @@
       "tags": [
         "Users"
       ],
-      "requestBody": {
-        "description": "User details",
-        "required": true,
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string",
-                  "format": "email"
-                },
-                "password": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "name",
-                "email",
-                "password"
-              ]
-            }
-          }
+      "requestBodyDescription": "User details",
+      "requestFields": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "format": "email",
+          "required": true
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": true
         }
-      },
-      "responses": {
-        "201": {
+      ],
+      "responses": [
+        {
+          "status": 201,
           "description": "User created successfully"
         },
-        "400": {
+        {
+          "status": 400,
           "description": "Invalid request"
         }
-      }
+      ]
     },
     {
       "path": "/users/{id}",
@@ -137,22 +116,21 @@
       "parameters": [
         {
           "name": "id",
-          "in": "path",
-          "description": "User ID",
+          "type": "string",
           "required": true,
-          "schema": {
-            "type": "string"
-          }
+          "description": "User ID"
         }
       ],
-      "responses": {
-        "200": {
+      "responses": [
+        {
+          "status": 200,
           "description": "User found"
         },
-        "404": {
+        {
+          "status": 404,
           "description": "User not found"
         }
-      }
+      ]
     }
   ]
 }
