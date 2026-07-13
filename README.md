@@ -72,6 +72,7 @@ src/
 │
 ├── components/
 │   ├── AppShell.tsx
+│   ├── SearchInput.tsx
 │   └── TenantTabsHeader.tsx
 │
 ├── context/
@@ -87,6 +88,9 @@ src/
 ├── services/
 │   └── specConverter.ts
 │
+├── shared/
+│   └── simpleApiFormat.ts
+│
 ├── server/
 │   ├── index.ts
 │   └── services/
@@ -95,7 +99,6 @@ src/
 │       ├── apiService.ts
 │       ├── eventService.ts
 │       ├── fileTemplateService.ts
-│       ├── simpleApiFormat.ts
 │       └── tenantService.ts
 │
 ├── types/
@@ -375,11 +378,20 @@ name. On success, the corresponding service:
 
 Registering an API (`POST /api/tenants/:tenantId/apis/upload`) does **not**
 require raw OpenAPI JSON. `apiService` accepts a flatter, generic format
-that's easy to produce from an ABAP backend, then expands it server-side
-(`src/server/services/simpleApiFormat.ts`) into the OpenAPI-ready shape
-that gets stored and rendered in Swagger UI. You never have to construct
-OpenAPI's nested `parameters[].in`, `content: { "application/json": {...} }`,
-or JSON-Schema `properties` maps by hand.
+that's easy to produce from an ABAP backend, and **stores it exactly as
+submitted** — no expansion happens at registration time. You never have to
+construct OpenAPI's nested `parameters[].in`,
+`content: { "application/json": {...} }`, or JSON-Schema `properties` maps
+by hand; that's handled entirely in the browser when the API is viewed.
+
+The expansion into an OpenAPI-ready shape (`src/shared/simpleApiFormat.ts`,
+function `expandSimpleApi()`) and the further conversion into a full OpenAPI
+3.0 document (`src/services/specConverter.ts`, function `convertToOpenAPI()`)
+both run at **render time** in `ApiDetailPage.tsx`, right before the spec is
+handed to Swagger UI or exported as JSON/YAML. Since `simpleApiFormat.ts`
+lives in `src/shared/` rather than under `src/server/`, it's plain,
+dependency-free TypeScript importable from both the backend (were it ever
+needed there again) and the frontend.
 
 ```json
 {
