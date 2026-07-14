@@ -234,26 +234,32 @@ which adapts to whichever format that template uses:
 
 - **Rich format** — sections render as a **hierarchy**, not a flat list: a
   child section (via `parentSection`) is nested and visually indented
-  underneath its parent, connected by a left border, recursively to any
-  depth — so a Header → Plants → Batches structure actually looks like one
-  instead of three same-level cards. Each section is collapsible and shows
-  a table of its own field mappings (position, field name, description,
-  API name, mask, reference, default value, mapping type, download format,
-  conversions, and checkbox columns for parent-value/mandatory). Coded
-  values are decoded into readable badges rather than shown raw — e.g.
-  `apiType: "P"` → **Post**, `mappingType: "I"` → **Import**,
-  `conversions: "X"` → **Skip Conversions**. A search box filters fields by
-  name/description across every section at once, and mappings that
-  reference an unrecognized section name are shown separately under
-  "Ungrouped fields" rather than silently dropped.
+  underneath its parent, connected by a solid vertical line with a short
+  horizontal "elbow" linking it to its section card — the same visual
+  language as a file-explorer tree — recursively to any depth, so a
+  Header → Plants → Batches structure actually looks like one instead of
+  three same-level cards. Each section's own API Name is shown right in
+  its header row (not hidden inside the collapsed content), and each
+  section is collapsible, showing a table of its own field mappings
+  (position, field name, description, API name, mask, reference, default
+  value, mapping type, download format, conversions, and checkbox columns
+  for Parent Value/Required). Only top-level sections are expanded by
+  default — nested child sections start collapsed, so opening a template
+  with a deep hierarchy doesn't dump every level's mapping table onto the
+  page at once. Coded values are decoded into readable badges rather than
+  shown raw — e.g. `apiType: "P"` → **Post**,
+  `mappingType: "I"` → **Import**, `conversions: "X"` → **Skip
+  Conversions**. A search box filters fields by name/description across
+  every section at once, and mappings that reference an unrecognized
+  section name are shown separately under "Ungrouped fields" rather than
+  silently dropped.
 - **Legacy format** — a plain field table (name/type/required/description)
   plus the sample content block, same as before.
 
 This page also has its **own breadcrumb** (`Tenants › {tenant} › File
 Templates › {template name}`) plus a dedicated "← Back to File Templates"
 link, rather than reusing the tab bar — since drilling into one template is
-a distinct step down, not just another tab to switch to. Both formats have
-a **Download JSON** button that saves the template exactly as stored.
+a distinct step down, not just another tab to switch to.
 
 ---
 
