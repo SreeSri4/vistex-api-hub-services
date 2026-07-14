@@ -5,18 +5,6 @@ import { SearchInput } from "../components/SearchInput";
 import { apiTypeBadge, mappingTypeBadge, conversionsBadge, type CodeBadge } from "../services/fileTemplateCodes";
 import type { FileTemplateMapping, FileTemplateSection, FileTemplateSpec } from "../types/tenant";
 
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-
 function Badge({ label, className }: CodeBadge) {
   return <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${className}`}>{label}</span>;
 }
@@ -59,11 +47,11 @@ function MappingTable({ mappings }: { mappings: FileTemplateMapping[] }) {
             <th className="py-2 pr-4 font-medium">API Name</th>
             <th className="py-2 pr-4 font-medium">Mask</th>
             <th className="py-2 pr-4 font-medium">Reference</th>
-            <th className="py-2 pr-4 font-medium">Default</th>
+            <th className="py-2 pr-4 font-medium">Default Value</th>
             <th className="py-2 pr-4 font-medium">Type</th>
             <th className="py-2 pr-4 font-medium">Download As</th>
             <th className="py-2 pr-4 font-medium">Conversions</th>
-            <th className="py-2 pr-4 font-medium text-center">Parent</th>
+            <th className="py-2 pr-4 font-medium text-center">Parent Value</th>
             <th className="py-2 pr-4 font-medium text-center">Required</th>
           </tr>
         </thead>
@@ -145,7 +133,17 @@ function SectionNodeView({
   const isOpen = expanded.has(section.name);
 
   return (
-    <div className={depth > 0 ? "relative pl-6 border-l-2 border-amber-200" : ""}>
+    <div className={depth > 0 ? "relative pl-8" : ""}>
+      {depth > 0 && (
+        <>
+          {/* Tree connector: a vertical line down this node's own height, with
+              a short horizontal "elbow" linking it to the section card — the
+              same visual language as a file-explorer tree, in a solid,
+              clearly-visible color rather than a pale one. */}
+          <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-400" />
+          <span aria-hidden="true" className="absolute left-0 top-7 w-6 h-0.5 bg-amber-400" />
+        </>
+      )}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
         <button
           onClick={() => onToggle(section.name)}
@@ -161,19 +159,21 @@ function SectionNodeView({
             <div className="min-w-0">
               <span className="font-display font-semibold text-slate-900">{section.name}</span>
               {section.description && <p className="text-sm text-slate-500 mt-0.5 truncate">{section.description}</p>}
+              {section.apiName && (
+                <p className="text-xs text-slate-400 font-mono mt-0.5 truncate">{section.apiName}</p>
+              )}
             </div>
           </div>
           <span className="text-xs text-slate-400 flex-shrink-0">{all.length} field{all.length === 1 ? "" : "s"}</span>
         </button>
         {isOpen && (
           <div className="border-t border-slate-100 px-5 py-4">
-            {section.apiName && <p className="text-xs text-slate-400 font-mono mb-3">{section.apiName}</p>}
             <MappingTable mappings={filtered} />
           </div>
         )}
       </div>
 
-      {children.length > 0 && (
+      {isOpen && children.length > 0 && (
         <div className="mt-3 space-y-3">
           {children.map((child) => (
             <SectionNodeView
@@ -214,8 +214,19 @@ export default function FileTemplateDetailPage() {
       .then((data) => {
         setTemplate(data);
         setError(null);
-        // Expand every section by default — most templates have a handful.
-        setExpanded(new Set((data.sections ?? []).map((s: any) => s.name)));
+        // Auto-expand only top-level sections by default — expanding every
+        // nested child too would dump the whole tree's mapping tables into
+        // view at once, making the page feel like it never stops scrolling
+        // deeper. Child sections stay collapsed until explicitly opened.
+        // "Root" here matches buildSectionTree's own definition: no parent,
+        // or a parentSection that doesn't match any defined section name.
+        const sections = data.sections ?? [];
+        const names = new Set(sections.map((s: any) => s.name));
+        const roots = sections.filter((s: any) => {
+          const parent = s.parentSection?.trim();
+          return !parent || !names.has(parent);
+        });
+        setExpanded(new Set(roots.map((s: any) => s.name)));
       })
       .catch((err) => setError(err.message ?? "Failed to load file template."));
   }, [tenantId, templateId]);
@@ -243,11 +254,6 @@ export default function FileTemplateDetailPage() {
       next.has(name) ? next.delete(name) : next.add(name);
       return next;
     });
-  }
-
-  function handleDownload() {
-    if (!template) return;
-    downloadFile(JSON.stringify(template, null, 2), `${template.id}.json`, "application/json");
   }
 
   const backToList = () => navigate(`/tenants/${tenantId}/file-templates`);
@@ -290,21 +296,18 @@ export default function FileTemplateDetailPage() {
             {/* Hero */}
             <div className="catalog-card relative">
               <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#B45309] rounded-r" />
-              <div className="pl-3 flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <h1 className="text-[#92400E] font-display">{template.name}</h1>
-                  {template.description && <p className="text-slate-600 mt-1">{template.description}</p>}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {hasRichFormat && <Badge {...apiTypeBadge(template.apiType)} />}
-                    {template.application && <Badge label={template.application} className="bg-slate-100 text-slate-600 border border-slate-200" />}
-                    {template.version && <Badge label={`v${template.version}`} className="bg-slate-100 text-slate-600 border border-slate-200" />}
-                    {template.format && <Badge label={template.format} className="bg-slate-100 text-slate-600 border border-slate-200" />}
-                  </div>
-                  {template.apiName && <p className="text-xs text-slate-400 mt-3 font-mono">{template.apiName}</p>}
+              <div className="pl-3">
+                <h1 className="text-[#92400E] font-display">{template.name}</h1>
+                {template.description && <p className="text-slate-600 mt-1">{template.description}</p>}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {hasRichFormat && <Badge {...apiTypeBadge(template.apiType)} />}
+                  {template.application && <Badge label={template.application} className="bg-slate-100 text-slate-600 border border-slate-200" />}
+                  {template.version && <Badge label={`v${template.version}`} className="bg-slate-100 text-slate-600 border border-slate-200" />}
+                  {template.format && <Badge label={template.format} className="bg-slate-100 text-slate-600 border border-slate-200" />}
                 </div>
-                <button onClick={handleDownload} className="btn-secondary whitespace-nowrap">
-                  Download JSON
-                </button>
+                {template.apiName && (
+                  <p className="text-sm text-slate-500 mt-3 font-mono">{template.apiName}</p>
+                )}
               </div>
             </div>
 
