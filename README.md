@@ -83,7 +83,8 @@ src/
 │   ├── ApisPage.tsx
 │   ├── ApiDetailPage.tsx
 │   ├── EventsPage.tsx
-│   └── FileTemplatesPage.tsx
+│   ├── FileTemplatesPage.tsx
+│   └── FileTemplateDetailPage.tsx
 │
 ├── services/
 │   └── specConverter.ts
@@ -219,14 +220,32 @@ Provides documentation for tenant events including:
 
 ## File Templates
 
-Displays downloadable templates associated with a tenant.
+Each file template can be either:
 
-Typical templates include:
+- **Legacy generic format** — `format` (CSV/XML/JSON/etc.), a flat `fields`
+  list, and optional `sampleContent`
+- **Rich SAP/ABAP-style format** — a header (`apiType`, `endpoint`,
+  `application`, `version`) plus `sections` and `mappings` — see
+  **File Template registration format** under Backend API Reference below
 
-- JSON
-- CSV
-- XML
-- Excel
+Clicking a file template opens its detail page (`FileTemplateDetailPage.tsx`),
+which adapts to whichever format that template uses:
+
+- **Rich format** — each section renders as a collapsible card showing its
+  own endpoint and parent-section badge, with a table of that section's
+  field mappings underneath (position, field name, description, mask,
+  reference, default value, mapping type, download format, conversions,
+  and checkbox columns for parent-value/mandatory). Single-letter/word codes
+  are decoded into readable badges rather than shown raw (e.g. `"I"` →
+  **Import**, `"X"` → **Skip Conversions**). A search box filters fields by
+  name/description across all sections at once, and mappings that reference
+  an unrecognized section name are shown separately under "Ungrouped
+  fields" rather than silently dropped.
+- **Legacy format** — a plain field table (name/type/required/description)
+  plus the sample content block, same as before.
+
+Both formats have a **Download JSON** button that saves the template
+exactly as stored.
 
 ---
 
@@ -553,6 +572,114 @@ Notes:
   shapes (`parameters[].in`/`.schema`, `requestBody`, a `responses` object
   keyed by status code), those pass through unchanged — the simplified
   fields above are just a shorthand, not the only accepted format.
+
+### File Template registration format
+
+Registering a file template (`POST /api/tenants/:tenantId/file-templates/upload`)
+accepts a header plus two flat lists — `sections` and `mappings` — joined by
+section name, rather than mappings nested inside their section. Two flat
+tables joined by a name, instead of one deeply-nested structure, is what
+maps most directly onto ABAP's own internal tables.
+
+```json
+{
+  "id": "material-master-upload",
+  "name": "Material Master Upload",
+  "description": "File template for bulk material master creation and updates",
+  "apiType": "Post/Process",
+  "endpoint": "/materials/upload",
+  "application": "MM",
+  "version": "1.0.0",
+
+  "sections": [
+    { "name": "Header", "description": "Material header data", "endpoint": "/materials/{materialNumber}", "parentSection": "" },
+    { "name": "Plants", "description": "Plant-specific material data", "endpoint": "/materials/{materialNumber}/plants", "parentSection": "Header" }
+  ],
+
+  "mappings": [
+    {
+      "sectionName": "Header",
+      "fieldName": "MaterialNumber",
+      "description": "Material number",
+      "endpoint": "/materials/{materialNumber}",
+      "fieldMask": "MATNR",
+      "fieldPosition": 1,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "",
+      "parentValue": false,
+      "mappingType": "I",
+      "mandatory": true,
+      "valueForDownload": "Value",
+      "conversions": " "
+    },
+    {
+      "sectionName": "Plants",
+      "fieldName": "PlantCode",
+      "description": "Plant code",
+      "endpoint": "/materials/{materialNumber}/plants",
+      "fieldMask": "WERKS",
+      "fieldPosition": 1,
+      "refSection": "Header",
+      "refField": "MaterialNumber",
+      "defaultValue": "",
+      "parentValue": true,
+      "mappingType": "I",
+      "mandatory": true,
+      "valueForDownload": "Value",
+      "conversions": " "
+    }
+  ]
+}
+```
+
+Header fields:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `name` | yes | |
+| `id` | no | auto-slugified from `name` if omitted |
+| `description` | no | |
+| `apiType` | no | e.g. `"Post/Process"`, `"Patch"`, `"Get&Post"` |
+| `endpoint` | no | header-level default endpoint |
+| `application` | no | e.g. `"MM"`, `"SD"` |
+| `version` | no | |
+
+Each entry in `sections`:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `name` | yes | referenced by `mappings[].sectionName` |
+| `description` | no | |
+| `endpoint` | no | this section's own endpoint, if different from the header's |
+| `parentSection` | no | name of the parent section, for nested sections; blank/omitted = top-level |
+
+Each entry in `mappings`:
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `sectionName` | yes | must match a `sections[].name` |
+| `fieldName` | yes | |
+| `description` | no | |
+| `endpoint` | no | |
+| `fieldMask` | no | e.g. the underlying SAP field technical name |
+| `fieldPosition` | no | number, used to order columns in the UI |
+| `refSection` / `refField` | no | cross-reference to another section's field |
+| `defaultValue` | no | |
+| `parentValue` | no | checkbox — value is inherited from the parent record |
+| `mappingType` | no | `"I"` = Import, `"E"` = Export, `" "` (space) = Both |
+| `mandatory` | no | checkbox |
+| `valueForDownload` | no | `"Value"` \| `"Description"` \| `"Both"` |
+| `conversions` | no | `" "` (space) = All Checks, `"V"` = Skip Value Checks, `"X"` = Skip Conversions, `"Y"` = Skip Both |
+
+The file template detail page decodes `mappingType` and `conversions` into
+readable badges automatically (see File Templates under Navigation, above).
+A mapping whose `sectionName` doesn't match any defined section is still
+shown — grouped separately under "Ungrouped fields" — rather than dropped,
+so a typo in `sectionName` is visible instead of silently losing data.
+
+The older generic shape (`format`, a flat `fields` list, `sampleContent`)
+still works unchanged and renders as a simple field table instead.
 
 ---
 

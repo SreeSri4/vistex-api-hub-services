@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { TenantTabsHeader } from "../components/TenantTabsHeader";
 import { SearchInput } from "../components/SearchInput";
 import type { FileTemplateSpec } from "../types/tenant";
 
 export default function FileTemplatesPage() {
   const { tenantId } = useParams();
+  const navigate = useNavigate();
 
   const [templates, setTemplates] = useState<FileTemplateSpec[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +61,11 @@ export default function FileTemplatesPage() {
       ) : templates.length === 0 ? (
         <div className="empty-state">
           <p className="text-slate-600">
-            No File Templates yet for this tenant. 
+            No file templates yet for this tenant. Register one via{" "}
+            <code className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">
+              POST /api/tenants/{tenantId}/file-templates/upload
+            </code>
+            .
           </p>
         </div>
       ) : filtered.length === 0 ? (
@@ -69,26 +74,36 @@ export default function FileTemplatesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
-          {filtered.map((tpl) => (
-            <div key={tpl.id} className="catalog-card relative">
-              <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#B45309] rounded-r" />
-              <div className="pl-3 flex items-center justify-between gap-2">
-                <h2 className="font-display font-semibold text-lg text-[#92400E] leading-snug">{tpl.name}</h2>
-                {tpl.version && (
-                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded flex-shrink-0">v{tpl.version}</span>
-                )}
-              </div>
-              <p className="text-sm text-slate-600 mt-2 pl-3">{tpl.description}</p>
-              <div className="flex flex-wrap gap-2 mt-3 pl-3 items-center">
-                {tpl.format && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#FEF3E2] text-[#92400E]">
-                    {tpl.format}
-                  </span>
-                )}
-                {tpl.fields && <span className="text-xs text-slate-400 ml-auto">{tpl.fields.length} fields</span>}
-              </div>
-            </div>
-          ))}
+          {filtered.map((tpl) => {
+            const fieldCount = tpl.fields?.length ?? tpl.mappings?.length ?? 0;
+            return (
+              <button
+                key={tpl.id}
+                onClick={() => navigate(`/tenants/${tenantId}/file-templates/${tpl.id}`)}
+                className="catalog-card catalog-card--interactive relative"
+              >
+                <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#B45309] rounded-r" />
+                <div className="pl-3 flex items-center justify-between gap-2">
+                  <h2 className="font-display font-semibold text-lg text-[#92400E] leading-snug">{tpl.name}</h2>
+                  {tpl.version && (
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded flex-shrink-0">v{tpl.version}</span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-600 mt-2 pl-3">{tpl.description}</p>
+                <div className="flex flex-wrap gap-2 mt-3 pl-3 items-center">
+                  {(tpl.format || tpl.apiType) && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#FEF3E2] text-[#92400E]">
+                      {tpl.format || tpl.apiType}
+                    </span>
+                  )}
+                  {tpl.sections && tpl.sections.length > 0 && (
+                    <span className="text-xs text-slate-400">{tpl.sections.length} section{tpl.sections.length === 1 ? "" : "s"}</span>
+                  )}
+                  {fieldCount > 0 && <span className="text-xs text-slate-400 ml-auto">{fieldCount} field{fieldCount === 1 ? "" : "s"}</span>}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

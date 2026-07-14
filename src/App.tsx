@@ -6,6 +6,7 @@ import ApisPage from "./pages/ApisPage";
 import ApiDetailPage from "./pages/ApiDetailPage";
 import EventsPage from "./pages/EventsPage";
 import FileTemplatesPage from "./pages/FileTemplatesPage";
+import FileTemplateDetailPage from "./pages/FileTemplateDetailPage";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/tenants/:tenantId/apis/:apiId" element={<ApiDetailPage />} />
             <Route path="/tenants/:tenantId/events" element={<EventsPage />} />
             <Route path="/tenants/:tenantId/file-templates" element={<FileTemplatesPage />} />
+            <Route path="/tenants/:tenantId/file-templates/:templateId" element={<FileTemplateDetailPage />} />
           </Routes>
         </BrowserRouter>
     </TenantDataProvider>
