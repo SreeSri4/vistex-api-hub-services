@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TenantTabsHeader } from "../components/TenantTabsHeader";
 import { SearchInput } from "../components/SearchInput";
+import { apiTypeBadge } from "../services/fileTemplateCodes";
 import type { FileTemplateSpec } from "../types/tenant";
 
 export default function FileTemplatesPage() {
@@ -91,11 +92,17 @@ export default function FileTemplatesPage() {
                 </div>
                 <p className="text-sm text-slate-600 mt-2 pl-3">{tpl.description}</p>
                 <div className="flex flex-wrap gap-2 mt-3 pl-3 items-center">
-                  {(tpl.format || tpl.apiType) && (
+                  {tpl.format && (
                     <span className="text-xs font-medium px-2 py-0.5 rounded bg-[#FEF3E2] text-[#92400E]">
-                      {tpl.format || tpl.apiType}
+                      {tpl.format}
                     </span>
                   )}
+                  {!tpl.format && (tpl.sections?.length || tpl.mappings?.length) ? (
+                    (() => {
+                      const badge = apiTypeBadge(tpl.apiType);
+                      return <span className={`text-xs font-medium px-2 py-0.5 rounded ${badge.className}`}>{badge.label}</span>;
+                    })()
+                  ) : null}
                   {tpl.sections && tpl.sections.length > 0 && (
                     <span className="text-xs text-slate-400">{tpl.sections.length} section{tpl.sections.length === 1 ? "" : "s"}</span>
                   )}

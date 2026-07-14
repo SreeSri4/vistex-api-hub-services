@@ -113,7 +113,7 @@ export interface FileTemplateField {
 export interface FileTemplateSection {
   name: string;
   description?: string;
-  endpoint?: string;
+  apiName?: string;
   /** Name of this section's parent section, if any (blank/omitted = top-level). */
   parentSection?: string;
 }
@@ -125,7 +125,7 @@ export interface FileTemplateMapping {
   sectionName: string;
   fieldName: string;
   description?: string;
-  endpoint?: string;
+  apiName?: string;
   fieldMask?: string;
   fieldPosition?: number;
   refSection?: string;
@@ -155,10 +155,10 @@ export interface FileTemplateSpec {
   sampleContent?: string;
 
   // --- Rich, SAP/ABAP-style file template definition ---
-  /** e.g. "Post/Process", "Patch", "Get&Post" */
+  /** " " (space) = Get & Post, "A" = Process, "X" = Patch, "P" = Post. */
   apiType?: string;
-  /** Header-level default endpoint. */
-  endpoint?: string;
+  /** Header-level default API name. */
+  apiName?: string;
   application?: string;
   sections?: FileTemplateSection[];
   mappings?: FileTemplateMapping[];

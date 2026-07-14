@@ -87,7 +87,8 @@ src/
 │   └── FileTemplateDetailPage.tsx
 │
 ├── services/
-│   └── specConverter.ts
+│   ├── specConverter.ts
+│   └── fileTemplateCodes.ts
 │
 ├── shared/
 │   └── simpleApiFormat.ts
@@ -224,28 +225,35 @@ Each file template can be either:
 
 - **Legacy generic format** — `format` (CSV/XML/JSON/etc.), a flat `fields`
   list, and optional `sampleContent`
-- **Rich SAP/ABAP-style format** — a header (`apiType`, `endpoint`,
+- **Rich SAP/ABAP-style format** — a header (`apiType`, `apiName`,
   `application`, `version`) plus `sections` and `mappings` — see
   **File Template registration format** under Backend API Reference below
 
 Clicking a file template opens its detail page (`FileTemplateDetailPage.tsx`),
 which adapts to whichever format that template uses:
 
-- **Rich format** — each section renders as a collapsible card showing its
-  own endpoint and parent-section badge, with a table of that section's
-  field mappings underneath (position, field name, description, mask,
-  reference, default value, mapping type, download format, conversions,
-  and checkbox columns for parent-value/mandatory). Single-letter/word codes
-  are decoded into readable badges rather than shown raw (e.g. `"I"` →
-  **Import**, `"X"` → **Skip Conversions**). A search box filters fields by
-  name/description across all sections at once, and mappings that reference
-  an unrecognized section name are shown separately under "Ungrouped
-  fields" rather than silently dropped.
+- **Rich format** — sections render as a **hierarchy**, not a flat list: a
+  child section (via `parentSection`) is nested and visually indented
+  underneath its parent, connected by a left border, recursively to any
+  depth — so a Header → Plants → Batches structure actually looks like one
+  instead of three same-level cards. Each section is collapsible and shows
+  a table of its own field mappings (position, field name, description,
+  API name, mask, reference, default value, mapping type, download format,
+  conversions, and checkbox columns for parent-value/mandatory). Coded
+  values are decoded into readable badges rather than shown raw — e.g.
+  `apiType: "P"` → **Post**, `mappingType: "I"` → **Import**,
+  `conversions: "X"` → **Skip Conversions**. A search box filters fields by
+  name/description across every section at once, and mappings that
+  reference an unrecognized section name are shown separately under
+  "Ungrouped fields" rather than silently dropped.
 - **Legacy format** — a plain field table (name/type/required/description)
   plus the sample content block, same as before.
 
-Both formats have a **Download JSON** button that saves the template
-exactly as stored.
+This page also has its **own breadcrumb** (`Tenants › {tenant} › File
+Templates › {template name}`) plus a dedicated "← Back to File Templates"
+link, rather than reusing the tab bar — since drilling into one template is
+a distinct step down, not just another tab to switch to. Both formats have
+a **Download JSON** button that saves the template exactly as stored.
 
 ---
 
@@ -586,14 +594,15 @@ maps most directly onto ABAP's own internal tables.
   "id": "material-master-upload",
   "name": "Material Master Upload",
   "description": "File template for bulk material master creation and updates",
-  "apiType": "Post/Process",
-  "endpoint": "/materials/upload",
+  "apiType": "P",
+  "apiName": "/materials/upload",
   "application": "MM",
   "version": "1.0.0",
 
   "sections": [
-    { "name": "Header", "description": "Material header data", "endpoint": "/materials/{materialNumber}", "parentSection": "" },
-    { "name": "Plants", "description": "Plant-specific material data", "endpoint": "/materials/{materialNumber}/plants", "parentSection": "Header" }
+    { "name": "Header", "description": "Material header data", "apiName": "/materials/{materialNumber}", "parentSection": "" },
+    { "name": "Plants", "description": "Plant-specific material data", "apiName": "/materials/{materialNumber}/plants", "parentSection": "Header" },
+    { "name": "Batches", "description": "Batch records for each plant", "apiName": "/materials/{materialNumber}/plants/{plantCode}/batches", "parentSection": "Plants" }
   ],
 
   "mappings": [
@@ -601,7 +610,7 @@ maps most directly onto ABAP's own internal tables.
       "sectionName": "Header",
       "fieldName": "MaterialNumber",
       "description": "Material number",
-      "endpoint": "/materials/{materialNumber}",
+      "apiName": "/materials/{materialNumber}",
       "fieldMask": "MATNR",
       "fieldPosition": 1,
       "refSection": "",
@@ -617,11 +626,27 @@ maps most directly onto ABAP's own internal tables.
       "sectionName": "Plants",
       "fieldName": "PlantCode",
       "description": "Plant code",
-      "endpoint": "/materials/{materialNumber}/plants",
+      "apiName": "/materials/{materialNumber}/plants",
       "fieldMask": "WERKS",
       "fieldPosition": 1,
       "refSection": "Header",
       "refField": "MaterialNumber",
+      "defaultValue": "",
+      "parentValue": true,
+      "mappingType": "I",
+      "mandatory": true,
+      "valueForDownload": "Value",
+      "conversions": " "
+    },
+    {
+      "sectionName": "Batches",
+      "fieldName": "BatchNumber",
+      "description": "Batch number",
+      "apiName": "/materials/{materialNumber}/plants/{plantCode}/batches",
+      "fieldMask": "CHARG",
+      "fieldPosition": 1,
+      "refSection": "Plants",
+      "refField": "PlantCode",
       "defaultValue": "",
       "parentValue": true,
       "mappingType": "I",
@@ -633,6 +658,11 @@ maps most directly onto ABAP's own internal tables.
 }
 ```
 
+`Header → Plants → Batches` above is a **3-level hierarchy**: `Plants`'s
+`parentSection` is `"Header"`, and `Batches`'s `parentSection` is
+`"Plants"`. The detail page renders this as an actual nested tree (indented,
+connected by a left border), not three same-level cards with a badge.
+
 Header fields:
 
 | Field | Required | Notes |
@@ -640,8 +670,8 @@ Header fields:
 | `name` | yes | |
 | `id` | no | auto-slugified from `name` if omitted |
 | `description` | no | |
-| `apiType` | no | e.g. `"Post/Process"`, `"Patch"`, `"Get&Post"` |
-| `endpoint` | no | header-level default endpoint |
+| `apiType` | no | `" "` (space) = Get & Post, `"A"` = Process, `"X"` = Patch, `"P"` = Post |
+| `apiName` | no | header-level default API name |
 | `application` | no | e.g. `"MM"`, `"SD"` |
 | `version` | no | |
 
@@ -651,7 +681,7 @@ Each entry in `sections`:
 |-------|----------|-------|
 | `name` | yes | referenced by `mappings[].sectionName` |
 | `description` | no | |
-| `endpoint` | no | this section's own endpoint, if different from the header's |
+| `apiName` | no | this section's own API name, if different from the header's |
 | `parentSection` | no | name of the parent section, for nested sections; blank/omitted = top-level |
 
 Each entry in `mappings`:
@@ -661,7 +691,7 @@ Each entry in `mappings`:
 | `sectionName` | yes | must match a `sections[].name` |
 | `fieldName` | yes | |
 | `description` | no | |
-| `endpoint` | no | |
+| `apiName` | no | |
 | `fieldMask` | no | e.g. the underlying SAP field technical name |
 | `fieldPosition` | no | number, used to order columns in the UI |
 | `refSection` / `refField` | no | cross-reference to another section's field |
@@ -672,11 +702,13 @@ Each entry in `mappings`:
 | `valueForDownload` | no | `"Value"` \| `"Description"` \| `"Both"` |
 | `conversions` | no | `" "` (space) = All Checks, `"V"` = Skip Value Checks, `"X"` = Skip Conversions, `"Y"` = Skip Both |
 
-The file template detail page decodes `mappingType` and `conversions` into
-readable badges automatically (see File Templates under Navigation, above).
-A mapping whose `sectionName` doesn't match any defined section is still
-shown — grouped separately under "Ungrouped fields" — rather than dropped,
-so a typo in `sectionName` is visible instead of silently losing data.
+The file template detail page decodes `apiType`, `mappingType`, and
+`conversions` into readable badges automatically (see File Templates under
+Navigation, above), and shows every mapping's `apiName` as its own table
+column. A mapping whose `sectionName` doesn't match any defined section is
+still shown — grouped separately under "Ungrouped fields" — rather than
+dropped, so a typo in `sectionName` is visible instead of silently losing
+data.
 
 The older generic shape (`format`, a flat `fields` list, `sampleContent`)
 still works unchanged and renders as a simple field table instead.
