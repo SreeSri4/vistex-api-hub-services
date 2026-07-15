@@ -62,6 +62,7 @@ styling per page:
 ### Utilities
 
 - js-yaml
+- openapi-schema-validator
 
 ---
 
@@ -91,7 +92,8 @@ src/
 │   └── fileTemplateCodes.ts
 │
 ├── shared/
-│   └── simpleApiFormat.ts
+│   ├── simpleApiFormat.ts
+│   └── validateApiSpec.ts
 │
 ├── server/
 │   ├── index.ts
@@ -422,10 +424,11 @@ code (400/404/409/500).
 Registering an API (`POST /api/tenants/:tenantId/apis/upload`) does **not**
 require raw OpenAPI JSON. `apiService` accepts a flatter, generic format
 that's easy to produce from an ABAP backend, and **stores it exactly as
-submitted** — no expansion happens at registration time. You never have to
-construct OpenAPI's nested `parameters[].in`,
-`content: { "application/json": {...} }`, or JSON-Schema `properties` maps
-by hand; that's handled entirely in the browser when the API is viewed.
+submitted** — no expansion happens at registration time, only validation
+(see OpenAPI validation, below). You never have to construct OpenAPI's
+nested `parameters[].in`, `content: { "application/json": {...} }`, or
+JSON-Schema `properties` maps by hand; the expansion itself is handled
+entirely in the browser when the API is viewed.
 
 The expansion into an OpenAPI-ready shape (`src/shared/simpleApiFormat.ts`,
 function `expandSimpleApi()`) and the further conversion into a full OpenAPI
@@ -586,6 +589,36 @@ Notes:
   shapes (`parameters[].in`/`.schema`, `requestBody`, a `responses` object
   keyed by status code), those pass through unchanged — the simplified
   fields above are just a shorthand, not the only accepted format.
+
+### OpenAPI validation
+
+Every API submission is validated against the official OpenAPI 3.0 schema
+(`openapi-schema-validator`, in `src/shared/validateApiSpec.ts`) — not just
+the handful of basic checks in `apiService`'s own `validate` function
+(`baseUrl` present, `endpoints` is an array). `validateApiSpec` runs the
+payload through the same `expandSimpleApi` → `convertToOpenAPI` pipeline
+used everywhere else, then checks the result against the real OpenAPI
+schema, so structural mistakes get caught with a specific error rather than
+only showing up later as a broken-looking Swagger UI page:
+
+```bash
+curl -H "Content-Type: application/json" \
+  -d '{"name":"Bad API","baseUrl":"https://x.com","endpoints":[{"path":123,"method":"GET"}]}' \
+  http://localhost:3000/api/tenants/MX/apis/upload
+```
+```json
+{ "status": "error", "message": "API JSON does not produce a valid OpenAPI document: /paths: must NOT have additional properties" }
+```
+
+This runs in two places, both calling the same shared function:
+
+- **At registration time** (`apiService.ts`) — a malformed submission is
+  rejected immediately with a clear error, before it's ever written to disk.
+- **At render time** (`ApiDetailPage.tsx`) — as a safety net for anything
+  that slipped through, or was written to the data folder directly rather
+  than through the API. If validation fails here, a warning banner appears
+  above Swagger UI listing what's structurally wrong, instead of Swagger UI
+  silently rendering an incomplete spec with no explanation.
 
 ### File Template registration format
 
@@ -817,7 +850,6 @@ through `dataStore.ts`'s helpers.
 - API testing from browser
 - Role-based access
 - Dark mode
-- OpenAPI validation
 - Event schema visualization
 
 ---
