@@ -5,6 +5,7 @@ import "swagger-ui-react/swagger-ui.css";
 import { useTenantData } from "../context/TenantDataContext";
 import { convertToOpenAPI, specToJSON, specToYAML } from "../services/specConverter";
 import { expandSimpleApi } from "../shared/simpleApiFormat";
+import { validateApiSpec } from "../shared/validateApiSpec";
 import type { APIDefinition } from "../types";
 
 const OAUTH_SCOPE = "GtmsApi";
@@ -332,6 +333,15 @@ export default function ApiDetailPage() {
     return convertToOpenAPI(expanded as unknown as APIDefinition);
   }, [api]);
 
+  // Same validation apiService runs at registration time — repeated here so
+  // an item that was written straight to disk (bypassing the API), or that
+  // slips through for any other reason, still surfaces a clear warning
+  // instead of Swagger UI silently rendering an incomplete page.
+  const validation = useMemo(() => {
+    if (!api) return null;
+    return validateApiSpec(api);
+  }, [api]);
+
   if (api === undefined) {
     return <p className="w-full px-6 md:px-10 lg:px-16 py-10 text-slate-600">Loading…</p>;
   }
@@ -453,6 +463,22 @@ export default function ApiDetailPage() {
       </div>
 
       <div className="w-full px-4 md:px-8 lg:px-12 py-6">
+        {validation && !validation.valid && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+            <p className="text-sm font-semibold text-amber-800">
+              This API doesn't produce a fully valid OpenAPI document
+            </p>
+            <p className="text-xs text-amber-700 mt-1">
+              Swagger UI below may render incorrectly or omit parts of the spec. Details:
+            </p>
+            <ul className="text-xs text-amber-700 mt-2 list-disc list-inside space-y-0.5">
+              {validation.errors.slice(0, 5).map((err, i) => (
+                <li key={i} className="font-mono">{err}</li>
+              ))}
+              {validation.errors.length > 5 && <li>+{validation.errors.length - 5} more</li>}
+            </ul>
+          </div>
+        )}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <SwaggerUI
             key={effectiveToken || "anon"}
