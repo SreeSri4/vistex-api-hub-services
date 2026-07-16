@@ -26,7 +26,12 @@ styling per page:
 
 - **Type** — `Space Grotesk` for headings/brand/tab labels (`font-display`),
   `Inter` for body text (default sans), `JetBrains Mono` for technical
-  strings — base URLs, channels, tenant/API ids (`font-mono`).
+  strings — base URLs, channels, tenant/API ids (`font-mono`). The small
+  end of the scale is deliberately bumped above Tailwind's defaults —
+  `text-xs` is 14px and `text-sm` is 16px (vs. Tailwind's default 12px/14px)
+  — since the app leans on badges/chips for dense structured data (see File
+  Templates below) and Tailwind's stock small sizes read as too tiny next
+  to the 17px body text everywhere else.
 - **Color-coded categories** — APIs, Events, and File Templates each carry
   their own accent color everywhere they appear (card left-border, tab pill,
   badges): **blue** `#1D4ED8` for APIs, **violet** `#7C3AED` for Events,
@@ -242,14 +247,17 @@ which adapts to whichever format that template uses:
   Header → Plants → Batches structure actually looks like one instead of
   three same-level cards. Each section's own API Name is shown right in
   its header row (not hidden inside the collapsed content), and each
-  section is collapsible, showing a table of its own field mappings
-  (position, field name, description, API name, mask, reference, default
-  value, mapping type, download format, conversions, and checkbox columns
-  for Parent Value/Required). Only top-level sections are expanded by
-  default — nested child sections start collapsed, so opening a template
-  with a deep hierarchy doesn't dump every level's mapping table onto the
-  page at once. Coded values are decoded into readable badges rather than
-  shown raw — e.g. `apiType: "P"` → **Post**,
+  section is collapsible, showing its own field mappings as a **stacked
+  list of field cards, not a wide table** — field name, description, and a
+  wrapping row of small labeled chips (API Name, Mask, Reference, Default
+  Value, Download As, Conversions, Parent Value, Required). Every chip
+  wraps onto as many lines as it needs instead of forcing a fixed table
+  width, so nested/indented sections never need horizontal scrolling no
+  matter how many attributes a field has or how deep it's nested. Only
+  top-level sections are expanded by default — nested child sections start
+  collapsed, so opening a template with a deep hierarchy doesn't dump every
+  level's fields onto the page at once. Coded values are decoded into
+  readable badges rather than shown raw — e.g. `apiType: "P"` → **Post**,
   `mappingType: "I"` → **Import**, `conversions: "X"` → **Skip
   Conversions**. A search box filters fields by name/description across
   every section at once, and mappings that reference an unrecognized

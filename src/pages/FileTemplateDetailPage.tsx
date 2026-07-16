@@ -6,7 +6,7 @@ import { apiTypeBadge, mappingTypeBadge, conversionsBadge, type CodeBadge } from
 import type { FileTemplateMapping, FileTemplateSection, FileTemplateSpec } from "../types/tenant";
 
 function Badge({ label, className }: CodeBadge) {
-  return <span className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${className}`}>{label}</span>;
+  return <span className={`text-xs font-medium px-2.5 py-1 rounded whitespace-nowrap ${className}`}>{label}</span>;
 }
 
 function CheckIcon({ checked }: { checked?: boolean }) {
@@ -17,6 +17,28 @@ function CheckIcon({ checked }: { checked?: boolean }) {
     </svg>
   ) : (
     <span className="text-slate-300 text-sm">—</span>
+  );
+}
+
+function StatusChip({ label, checked }: { label: string; checked?: boolean }) {
+  if (!checked) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md px-2.5 py-1 whitespace-nowrap">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 12.5l4.5 4.5L19 7" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {label}
+    </span>
+  );
+}
+
+function MetaChip({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 whitespace-nowrap">
+      <span className="text-slate-400">{label}</span>
+      <span className="font-mono text-slate-700">{value}</span>
+    </span>
   );
 }
 
@@ -32,53 +54,52 @@ function matchesQuery(m: FileTemplateMapping, q: string) {
   );
 }
 
-function MappingTable({ mappings }: { mappings: FileTemplateMapping[] }) {
+// Card-per-field layout instead of a wide table: every attribute becomes a
+// small chip that wraps onto as many lines as it needs. A table with this
+// many columns (field, description, API name, mask, reference, default,
+// type, download-as, conversions, parent, required) has nowhere to go once
+// it's indented for nested sections — this reflows instead of scrolling,
+// at any indentation depth or viewport width.
+function FieldList({ mappings }: { mappings: FileTemplateMapping[] }) {
   if (mappings.length === 0) {
-    return <p className="text-sm text-slate-400 italic px-4 py-6">No mappings match your search in this section.</p>;
+    return <p className="text-sm text-slate-400 italic py-6">No mappings match your search in this section.</p>;
   }
+  const reference = (m: FileTemplateMapping) =>
+    m.refSection || m.refField ? `${m.refSection ?? ""}${m.refField ? `.${m.refField}` : ""}` : undefined;
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-slate-500 border-b border-slate-200">
-            <th className="py-2 pr-4 font-medium">#</th>
-            <th className="py-2 pr-4 font-medium">Field</th>
-            <th className="py-2 pr-4 font-medium">Description</th>
-            <th className="py-2 pr-4 font-medium">API Name</th>
-            <th className="py-2 pr-4 font-medium">Mask</th>
-            <th className="py-2 pr-4 font-medium">Reference</th>
-            <th className="py-2 pr-4 font-medium">Default Value</th>
-            <th className="py-2 pr-4 font-medium">Type</th>
-            <th className="py-2 pr-4 font-medium">Download As</th>
-            <th className="py-2 pr-4 font-medium">Conversions</th>
-            <th className="py-2 pr-4 font-medium text-center">Parent Value</th>
-            <th className="py-2 pr-4 font-medium text-center">Required</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mappings
-            .slice()
-            .sort((a, b) => (a.fieldPosition ?? 0) - (b.fieldPosition ?? 0))
-            .map((m, i) => (
-              <tr key={`${m.fieldName}-${i}`} className="border-b border-slate-100 last:border-0">
-                <td className="py-2.5 pr-4 text-slate-400">{m.fieldPosition ?? "—"}</td>
-                <td className="py-2.5 pr-4 font-mono text-[13px] text-slate-800">{m.fieldName}</td>
-                <td className="py-2.5 pr-4 text-slate-600">{m.description || "—"}</td>
-                <td className="py-2.5 pr-4 font-mono text-[13px] text-slate-500">{m.apiName || "—"}</td>
-                <td className="py-2.5 pr-4 font-mono text-[13px] text-slate-500">{m.fieldMask || "—"}</td>
-                <td className="py-2.5 pr-4 text-slate-500 font-mono text-[13px]">
-                  {m.refSection || m.refField ? `${m.refSection ?? ""}${m.refField ? `.${m.refField}` : ""}` : "—"}
-                </td>
-                <td className="py-2.5 pr-4 text-slate-500 font-mono text-[13px]">{m.defaultValue || "—"}</td>
-                <td className="py-2.5 pr-4"><Badge {...mappingTypeBadge(m.mappingType)} /></td>
-                <td className="py-2.5 pr-4 text-slate-500">{m.valueForDownload || "—"}</td>
-                <td className="py-2.5 pr-4"><Badge {...conversionsBadge(m.conversions)} /></td>
-                <td className="py-2.5 pr-4 text-center"><CheckIcon checked={m.parentValue} /></td>
-                <td className="py-2.5 pr-4 text-center"><CheckIcon checked={m.mandatory} /></td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+    <div className="divide-y divide-slate-100">
+      {mappings
+        .slice()
+        .sort((a, b) => (a.fieldPosition ?? 0) - (b.fieldPosition ?? 0))
+        .map((m, i) => (
+          <div key={`${m.fieldName}-${i}`} className="py-3.5 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex items-baseline gap-2 min-w-0">
+                {m.fieldPosition !== undefined && (
+                  <span className="text-xs text-slate-400 tabular-nums flex-shrink-0">#{m.fieldPosition}</span>
+                )}
+                <span className="font-mono text-sm font-semibold text-slate-800">{m.fieldName}</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap flex-shrink-0">
+                <Badge {...mappingTypeBadge(m.mappingType)} />
+                <StatusChip label="Required" checked={m.mandatory} />
+                <StatusChip label="Parent Value" checked={m.parentValue} />
+              </div>
+            </div>
+
+            {m.description && <p className="text-sm text-slate-500 mt-1">{m.description}</p>}
+
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <MetaChip label="API" value={m.apiName} />
+              <MetaChip label="Mask" value={m.fieldMask} />
+              <MetaChip label="Ref" value={reference(m)} />
+              <MetaChip label="Default Value" value={m.defaultValue} />
+              <MetaChip label="Download As" value={m.valueForDownload} />
+              <MetaChip label="Conversions" value={conversionsBadge(m.conversions).label} />
+            </div>
+          </div>
+        ))}
     </div>
   );
 }
@@ -168,7 +189,7 @@ function SectionNodeView({
         </button>
         {isOpen && (
           <div className="border-t border-slate-100 px-5 py-4">
-            <MappingTable mappings={filtered} />
+            <FieldList mappings={filtered} />
           </div>
         )}
       </div>
@@ -297,7 +318,7 @@ export default function FileTemplateDetailPage() {
             <div className="catalog-card relative">
               <span className="absolute left-0 top-5 bottom-5 w-1 bg-[#B45309] rounded-r" />
               <div className="pl-3">
-                <h1 className="text-[#92400E] font-display">{template.name}</h1>
+                <h1 className="text-[#92400E] font-display text-2xl font-semibold">{template.name}</h1>
                 {template.description && <p className="text-slate-600 mt-1">{template.description}</p>}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {hasRichFormat && <Badge {...apiTypeBadge(template.apiType)} />}
@@ -341,7 +362,7 @@ export default function FileTemplateDetailPage() {
                         </p>
                       </div>
                       <div className="border-t border-slate-100 px-5 py-4">
-                        <MappingTable mappings={orphanMappings.filter((m) => matchesQuery(m, query))} />
+                        <FieldList mappings={orphanMappings.filter((m) => matchesQuery(m, query))} />
                       </div>
                     </div>
                   )}
@@ -366,7 +387,7 @@ export default function FileTemplateDetailPage() {
                     <tbody>
                       {template.fields.map((f) => (
                         <tr key={f.name} className="border-b border-slate-100 last:border-0">
-                          <td className="py-2.5 pr-4 font-mono text-[13px] text-slate-800">{f.name}</td>
+                          <td className="py-2.5 pr-4 font-mono text-sm text-slate-800">{f.name}</td>
                           <td className="py-2.5 pr-4 text-slate-500">{f.type || "string"}</td>
                           <td className="py-2.5 pr-4 text-slate-600">{f.description || "—"}</td>
                           <td className="py-2.5 pr-4 text-center"><CheckIcon checked={f.required} /></td>

@@ -12,6 +12,8 @@ export default {
             mono: ["\"JetBrains Mono\"", "ui-monospace", "SFMono-Regular", "monospace"],
           },
           fontSize: {
+            xs: ["0.875rem", { lineHeight: "1.45" }],   // 14px, up from Tailwind's default 12px
+            sm: ["1rem", { lineHeight: "1.55" }],        // 16px, up from Tailwind's default 14px
             base: ["1.0625rem", { lineHeight: "1.6" }],  // ~17px body, up from Tailwind's default 16px
             lg: ["1.25rem", { lineHeight: "1.6" }],
             xl: ["1.5rem", { lineHeight: "1.4" }],
