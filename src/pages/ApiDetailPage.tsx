@@ -417,18 +417,18 @@ export default function ApiDetailPage() {
                   <span aria-hidden="true" className="text-xs">▾</span>
                 </button>
                 {exportOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-36 bg-white text-[#1a3e6f] rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50">
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white text-[#1a3e6f] rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50">
                     <button
                       onClick={handleDownloadJSON}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50"
                     >
-                      Download JSON
+                      JSON
                     </button>
                     <button
                       onClick={handleDownloadYAML}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-blue-50 border-t border-gray-100"
                     >
-                      Download YAML
+                      YAML
                     </button>
                   </div>
                 )}
