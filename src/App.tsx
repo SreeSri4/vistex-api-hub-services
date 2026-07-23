@@ -4,9 +4,11 @@ import { AppShell } from "./components/AppShell";
 import TenantsPage from "./pages/TenantsPage";
 import ApisPage from "./pages/ApisPage";
 import ApiDetailPage from "./pages/ApiDetailPage";
+import ApiComparePage from "./pages/ApiComparePage";
 import EventsPage from "./pages/EventsPage";
 import FileTemplatesPage from "./pages/FileTemplatesPage";
 import FileTemplateDetailPage from "./pages/FileTemplateDetailPage";
+import FileTemplateComparePage from "./pages/FileTemplateComparePage";
 
 export default function App() {
   return (
@@ -17,9 +19,11 @@ export default function App() {
             <Route path="/" element={<TenantsPage />} />
             <Route path="/tenants/:tenantId" element={<Navigate to="apis" replace />} />
             <Route path="/tenants/:tenantId/apis" element={<ApisPage />} />
+            <Route path="/tenants/:tenantId/apis/compare" element={<ApiComparePage />} />
             <Route path="/tenants/:tenantId/apis/:apiId" element={<ApiDetailPage />} />
             <Route path="/tenants/:tenantId/events" element={<EventsPage />} />
             <Route path="/tenants/:tenantId/file-templates" element={<FileTemplatesPage />} />
+            <Route path="/tenants/:tenantId/file-templates/compare" element={<FileTemplateComparePage />} />
             <Route path="/tenants/:tenantId/file-templates/:templateId" element={<FileTemplateDetailPage />} />
           </Routes>
         </BrowserRouter>

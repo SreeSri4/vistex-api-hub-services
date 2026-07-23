@@ -169,3 +169,117 @@ export interface TenantSummary {
   eventCount: number;
   fileTemplateCount: number;
 }
+
+// --- API Version Comparison Types ---
+
+export interface FieldChange {
+  old: any;
+  new: any;
+}
+
+export interface ParameterDiff {
+  name: string;
+  in: string;
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  changes?: Record<string, FieldChange>;
+}
+
+export interface RequestBodyDiff {
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  changes?: Record<string, FieldChange>;
+  contentChanges?: SchemaChange[];
+}
+
+export interface ResponseDiff {
+  statusCode: string;
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  descriptionChange?: FieldChange;
+  schemaChanged?: boolean;
+  schemaChanges?: SchemaChange[];
+}
+
+export interface SchemaChange {
+  path: string;
+  type: "added" | "removed" | "modified";
+  oldValue?: any;
+  newValue?: any;
+}
+
+export interface EndpointDiff {
+  path: string;
+  method: string;
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  summaryChange?: FieldChange;
+  descriptionChange?: FieldChange;
+  parameterChanges?: ParameterDiff[];
+  requestBodyDiff?: RequestBodyDiff;
+  responseChanges?: ResponseDiff[];
+}
+
+export interface ApiDiffResult {
+  api1: ApiSpec;
+  api2: ApiSpec;
+  addedEndpoints: EndpointDiff[];
+  removedEndpoints: EndpointDiff[];
+  modifiedEndpoints: EndpointDiff[];
+  unchangedEndpoints: { path: string; method: string; summary: string }[];
+  summary: {
+    totalChanges: number;
+    endpointsAdded: number;
+    endpointsRemoved: number;
+    endpointsModified: number;
+  };
+}
+
+// --- File Template Version Comparison Types ---
+
+export interface SectionDiff {
+  name: string;
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  changes?: Record<string, FieldChange>;
+}
+
+export interface MappingDiff {
+  sectionName: string;
+  fieldName: string;
+  added?: boolean;
+  removed?: boolean;
+  changed?: boolean;
+  changes?: Record<string, FieldChange>;
+}
+
+export interface FileTemplateDiffResult {
+  template1: FileTemplateSpec;
+  template2: FileTemplateSpec;
+  summaryChange?: FieldChange;
+  descriptionChange?: FieldChange;
+  formatChange?: FieldChange;
+  versionChange?: FieldChange;
+  apiTypeChange?: FieldChange;
+  apiNameChange?: FieldChange;
+  applicationChange?: FieldChange;
+  sampleContentChange?: FieldChange;
+  sectionDiffs: SectionDiff[];
+  mappingDiffs: MappingDiff[];
+  fieldDiffs: MappingDiff[];
+  summary: {
+    totalChanges: number;
+    sectionsAdded: number;
+    sectionsRemoved: number;
+    sectionsModified: number;
+    mappingsAdded: number;
+    mappingsRemoved: number;
+    mappingsModified: number;
+    metadataChanges: number;
+  };
+}

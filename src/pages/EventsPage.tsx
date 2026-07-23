@@ -51,7 +51,7 @@ export default function EventsPage() {
 
       {events.length > 0 && (
         <div className="flex justify-end mt-6">
-          <SearchInput value={query} onChange={setQuery} placeholder="Find an Event" />
+          <SearchInput value={query} onChange={setQuery} placeholder="Find an Event" label="Search events" />
         </div>
       )}
 

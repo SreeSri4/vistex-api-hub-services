@@ -28,7 +28,7 @@ export default function TenantsPage() {
             Refresh
           </button>
           {tenants.length > 0 && (
-            <SearchInput value={query} onChange={setQuery} placeholder="Find a Tenant" />
+            <SearchInput value={query} onChange={setQuery} placeholder="Find a Tenant" label="Search tenants" />
           )}
         </div>
       </div>

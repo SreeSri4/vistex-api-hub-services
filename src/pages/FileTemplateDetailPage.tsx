@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTenantData } from "../context/TenantDataContext";
 import { SearchInput } from "../components/SearchInput";
@@ -245,7 +245,7 @@ export default function FileTemplateDetailPage() {
         const names = new Set(sections.map((s: any) => s.name));
         const roots = sections.filter((s: any) => {
           const parent = s.parentSection?.trim();
-          return !parent || !names.has(parent);
+          return !parent || !names.has(parent) || parent === s.name;
         });
         setExpanded(new Set(roots.map((s: any) => s.name)));
       })
@@ -266,16 +266,19 @@ export default function FileTemplateDetailPage() {
 
   const sectionTree = useMemo(() => buildSectionTree(template?.sections ?? []), [template]);
 
-  const knownSectionNames = new Set((template?.sections ?? []).map((s) => s.name));
-  const orphanMappings = (template?.mappings ?? []).filter((m) => !knownSectionNames.has(m.sectionName));
+  const knownSectionNames = useMemo(() => new Set((template?.sections ?? []).map((s) => s.name)), [template]);
+  const orphanMappings = useMemo(
+    () => (template?.mappings ?? []).filter((m) => !knownSectionNames.has(m.sectionName)),
+    [template, knownSectionNames],
+  );
 
-  function toggleSection(name: string) {
+  const toggleSection = useCallback((name: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
       next.has(name) ? next.delete(name) : next.add(name);
       return next;
     });
-  }
+  }, []);
 
   const backToList = () => navigate(`/tenants/${tenantId}/file-templates`);
 
@@ -288,7 +291,7 @@ export default function FileTemplateDetailPage() {
         <div className="bg-[#0f2847] text-[#9fb8d9] text-xs px-6 md:px-10 lg:px-16 py-2 flex items-center gap-2 overflow-x-auto">
           <button onClick={() => navigate("/")} className="hover:text-white whitespace-nowrap">Tenants</button>
           <span aria-hidden="true">›</span>
-          <button onClick={() => navigate(`/tenants/${tenantId}/apis`)} className="hover:text-white whitespace-nowrap">
+          <button onClick={() => navigate(`/tenants/${tenantId}/file-templates`)} className="hover:text-white whitespace-nowrap">
             {tenant?.name ?? tenantId}
           </button>
           <span aria-hidden="true">›</span>
@@ -296,16 +299,28 @@ export default function FileTemplateDetailPage() {
           <span aria-hidden="true">›</span>
           <span className="text-white font-medium whitespace-nowrap">{template?.name ?? templateId}</span>
         </div>
+
+        <div className="bg-gradient-to-r from-[#0f2847] via-[#1a3e6f] to-[#2a5298] text-white px-6 md:px-10 lg:px-16 py-5 shadow-md">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white leading-tight">
+                {template?.name ?? "File Template"}
+              </h1>
+              {template?.description && (
+                <p className="text-sm text-blue-100/80 mt-1">{template.description}</p>
+              )}
+            </div>
+            <button
+              onClick={backToList}
+              className="px-4 py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-semibold hover:bg-white/20 whitespace-nowrap transition"
+            >
+              Back to File Templates
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="w-full px-6 md:px-10 lg:px-16 py-8">
-        <button onClick={backToList} className="inline-flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 mb-6">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back to File Templates
-        </button>
-
         {template === undefined ? (
           <p className="text-slate-500">Loading…</p>
         ) : error || !template ? (
@@ -337,7 +352,7 @@ export default function FileTemplateDetailPage() {
               <div className="mt-8">
                 <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
                   <h2 className="text-slate-900">Sections</h2>
-                  <SearchInput value={query} onChange={setQuery} placeholder="Find a field" />
+                  <SearchInput value={query} onChange={setQuery} placeholder="Find a field" label="Search file template fields" />
                 </div>
 
                 <div className="space-y-3">

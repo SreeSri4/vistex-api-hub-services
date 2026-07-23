@@ -1,0 +1,588 @@
+{
+  "id": "get-catalog-prices-api",
+  "name": "GetCatalogPrices API",
+  "description": "Price Catalog REST functions",
+  "baseUrl": "https://api.pricestaging.com/v1",
+  "version": "1.0.0",
+  "endpoints": [
+    {
+      "path": "/GetCatalogPrices",
+      "method": "POST",
+      "summary": "Get Catalog Prices",
+      "description": "Fetches calculated pricing, deals, and promotional structures",
+      "tags": [
+        "GetCatalogPrices"
+      ],
+      "requestFields": [
+        {
+          "name": "Header",
+          "type": "array",
+          "items": [
+            {
+              "name": "PricingDate",
+              "type": "string",
+              "format": "YYYY-MM-DD"
+            },
+            {
+              "name": "Division",
+              "type": "string"
+            },
+            {
+              "name": "CustomerID",
+              "type": "string"
+            },
+            {
+              "name": "SalesOrganization",
+              "type": "string"
+            },
+            {
+              "name": "DistributionChannel",
+              "type": "string"
+            },
+            {
+              "name": "Currency",
+              "type": "string"
+            },
+            {
+              "name": "Items",
+              "type": "array",
+              "items": [
+                {
+                  "name": "ItemID",
+                  "type": "string"
+                },
+                {
+                  "name": "Quantity",
+                  "type": "string"
+                },
+                {
+                  "name": "Unit",
+                  "type": "string"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "responses": [
+        {
+          "status": 200,
+          "description": "Success",
+          "fields": [
+            {
+              "name": "GetCatalogPrices",
+              "type": "object",
+              "fields": [
+                {
+                  "name": "Header",
+                  "type": "array",
+                  "items": [
+                    {
+                      "name": "Error",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PricingDate",
+                      "type": "string",
+                      "format": "YYYY-MM-DD"
+                    },
+                    {
+                      "name": "Division",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CustomerID",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SalesOrganization",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DistributionChannel",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Currency",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Items",
+                      "type": "array",
+                      "items": [
+                        {
+                          "name": "Error",
+                          "type": "string"
+                        },
+                        {
+                          "name": "ItemID",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Quantity",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Unit",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Currency",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Price",
+                          "type": "string"
+                        },
+                        {
+                          "name": "TotalPromotions",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Calculations",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationElement",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ConditionRecord",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRate",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRateUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "Per",
+                              "type": "string"
+                            },
+                            {
+                              "name": "PerUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValue",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValueUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Deals",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ExternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealDescription",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealAmount",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealCurrency",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealValidFrom",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            },
+                            {
+                              "name": "DealValidTo",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": 206,
+          "description": "Partially Processed",
+          "fields": [
+            {
+              "name": "GetCatalogPrices",
+              "type": "object",
+              "fields": [
+                {
+                  "name": "Header",
+                  "type": "array",
+                  "items": [
+                    {
+                      "name": "Error",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PricingDate",
+                      "type": "string",
+                      "format": "YYYY-MM-DD"
+                    },
+                    {
+                      "name": "Division",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CustomerID",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SalesOrganization",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DistributionChannel",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Currency",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Items",
+                      "type": "array",
+                      "items": [
+                        {
+                          "name": "Error",
+                          "type": "string"
+                        },
+                        {
+                          "name": "ItemID",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Quantity",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Unit",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Currency",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Price",
+                          "type": "string"
+                        },
+                        {
+                          "name": "TotalPromotions",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Calculations",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationElement",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ConditionRecord",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRate",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRateUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "Per",
+                              "type": "string"
+                            },
+                            {
+                              "name": "PerUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValue",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValueUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Deals",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ExternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealDescription",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealAmount",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealCurrency",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealValidFrom",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            },
+                            {
+                              "name": "DealValidTo",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": 400,
+          "description": "Bad Request",
+          "fields": [
+            {
+              "name": "GetCatalogPrices",
+              "type": "object",
+              "fields": [
+                {
+                  "name": "Header",
+                  "type": "array",
+                  "items": [
+                    {
+                      "name": "Error",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PricingDate",
+                      "type": "string",
+                      "format": "YYYY-MM-DD"
+                    },
+                    {
+                      "name": "Division",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CustomerID",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SalesOrganization",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DistributionChannel",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Currency",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Items",
+                      "type": "array",
+                      "items": [
+                        {
+                          "name": "Error",
+                          "type": "string"
+                        },
+                        {
+                          "name": "ItemID",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Quantity",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Unit",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Currency",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Price",
+                          "type": "string"
+                        },
+                        {
+                          "name": "TotalPromotions",
+                          "type": "string"
+                        },
+                        {
+                          "name": "Calculations",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationElement",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ConditionRecord",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRate",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationRateUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "Per",
+                              "type": "string"
+                            },
+                            {
+                              "name": "PerUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValue",
+                              "type": "string"
+                            },
+                            {
+                              "name": "CalculationValueUnit",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Deals",
+                          "type": "array",
+                          "items": [
+                            {
+                              "name": "Error",
+                              "type": "string"
+                            },
+                            {
+                              "name": "ExternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "InternalDealID",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealDescription",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealAmount",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealCurrency",
+                              "type": "string"
+                            },
+                            {
+                              "name": "DealValidFrom",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            },
+                            {
+                              "name": "DealValidTo",
+                              "type": "string",
+                              "format": "YYYY-MM-DD"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "status": 401,
+          "description": "Unauthorized"
+        },
+        {
+          "status": 404,
+          "description": "Not Found"
+        },
+        {
+          "status": 500,
+          "description": "Internal Server Error"
+        },
+        {
+          "status": 502,
+          "description": "Gateway Error"
+        }
+      ]
+    }
+  ]
+}

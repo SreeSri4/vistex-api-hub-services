@@ -1,0 +1,121 @@
+{
+  "id": "material-master-upload1",
+  "name": "Material Master Upload",
+  "description": "File template for bulk material master creation and updates",
+  "apiType": "Post/Process",
+  "apiName": "/materials",
+  "application": "MM",
+  "version": "1.1.0",
+  "sections": [
+    {
+      "name": "Header",
+      "description": "Material header data",
+      "apiName": "/materials/{materialNumber}",
+      "parentSection": ""
+    },
+    {
+      "name": "Plants",
+      "description": "Plant-specific material data",
+      "apiName": "/materials/{materialNumber}/plants",
+      "parentSection": "Header"
+    }
+  ],
+  "mappings": [
+    {
+      "sectionName": "Header",
+      "fieldName": "MaterialNumber",
+      "description": "Material number",
+      "apiName": "/materials/{materialNumber}",
+      "fieldMask": "MATNR",
+      "fieldPosition": 1,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "",
+      "parentValue": false,
+      "mappingType": "I",
+      "mandatory": true,
+      "valueForDownload": "Value",
+      "conversions": " "
+    },
+    {
+      "sectionName": "Header",
+      "fieldName": "MaterialDescription",
+      "description": "Material description",
+      "apiName": "/materials/{materialNumber}",
+      "fieldMask": "MAKTX",
+      "fieldPosition": 2,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "",
+      "parentValue": false,
+      "mappingType": " ",
+      "mandatory": true,
+      "valueForDownload": "Both",
+      "conversions": " "
+    },
+    {
+      "sectionName": "Header",
+      "fieldName": "BaseUnit",
+      "description": "Base unit of measure",
+      "apiName": "/materials/{materialNumber}",
+      "fieldMask": "",
+      "fieldPosition": 3,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "",
+      "parentValue": false,
+      "mappingType": " ",
+      "mandatory": false,
+      "valueForDownload": "Description",
+      "conversions": ""
+    },
+    {
+      "sectionName": "Header",
+      "fieldName": "MaterialType",
+      "description": "MaterialType",
+      "apiName": "/materials/{materialType}",
+      "fieldMask": "",
+      "fieldPosition": 4,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "",
+      "parentValue": false,
+      "mappingType": "I",
+      "mandatory": false,
+      "valueForDownload": "Description",
+      "conversions": "V"
+    },
+    {
+      "sectionName": "Plants",
+      "fieldName": "PlantCode",
+      "description": "Plant code",
+      "apiName": "/materials/{materialNumber}/plants",
+      "fieldMask": "WERKS",
+      "fieldPosition": 1,
+      "refSection": "Header",
+      "refField": "MaterialNumber",
+      "defaultValue": "",
+      "parentValue": true,
+      "mappingType": "I",
+      "mandatory": true,
+      "valueForDownload": "Value",
+      "conversions": " "
+    },
+    {
+      "sectionName": "Plants",
+      "fieldName": "MRPType",
+      "description": "MRP type",
+      "apiName": "/materials/{materialNumber}/plants",
+      "fieldMask": "DISMM",
+      "fieldPosition": 2,
+      "refSection": "",
+      "refField": "",
+      "defaultValue": "PD",
+      "parentValue": false,
+      "mappingType": "E",
+      "mandatory": false,
+      "valueForDownload": "Description",
+      "conversions": "X"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "id": "mfg-users-1",
+  "name": "User Management API",
+  "description": "Authentication & user management",
+  "baseUrl": "https://api.manufacturing.com/v1",
+  "version": "1.0.1",
+  "contact": {
+    "name": "Manufacturing Support",
+    "email": "support@manufacturing.com"
+  },
+  "license": {
+    "name": "Apache 2.0"
+  },
+  "tags": [
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/users",
+      "method": "GET",
+      "summary": "List all users",
+      "description": "Retrieve a paginated list of users",
+      "tags": [
+        "Users"
+      ],
+      "parameters": [
+        {
+          "name": "page",
+          "type": "integer",
+          "example": 1,
+          "description": "Page number"
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "example": 20,
+          "description": "Items per page"
+        }
+      ],
+      "responses": [
+        {
+          "status": 200,
+          "fields": [
+            {
+              "name": "users",
+              "type": "array",
+              "items": [
+                {
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "name": "email",
+                  "type": "string",
+                  "format": "email"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/users",
+      "method": "POST",
+      "summary": "Create a new user",
+      "description": "Create a new user in the system",
+      "tags": [
+        "Users"
+      ],
+      "requestBodyDescription": "User details",
+      "requestFields": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "format": "email",
+          "required": true
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "language",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "responses": [
+        {
+          "status": 201,
+          "description": "User created successfully"
+        },
+        {
+          "status": 400,
+          "description": "Invalid request"
+        }
+      ]
+    },
+    {
+      "path": "/users/{id}",
+      "method": "GET",
+      "summary": "Get user by ID",
+      "description": "Retrieve a specific user by their ID",
+      "tags": [
+        "Users"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "User ID"
+        }
+      ],
+      "responses": [
+        {
+          "status": 200,
+          "description": "User found"
+        },
+        {
+          "status": 404,
+          "description": "User not found"
+        }
+      ]
+    }
+  ]
+}

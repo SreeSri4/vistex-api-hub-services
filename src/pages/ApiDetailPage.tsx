@@ -6,6 +6,7 @@ import { useTenantData } from "../context/TenantDataContext";
 import { convertToOpenAPI, specToJSON, specToYAML } from "../services/specConverter";
 import { expandSimpleApi } from "../shared/simpleApiFormat";
 import { validateApiSpec } from "../shared/validateApiSpec";
+import type { ApiSpec } from "../types/tenant";
 import type { APIDefinition } from "../types";
 
 const OAUTH_SCOPE = "GtmsApi";
@@ -245,7 +246,7 @@ export default function ApiDetailPage() {
 
   // The API is no longer embedded in the tenant blob — fetch it directly
   // from its own file under <tenant_id>/API/<apiId>.json.
-  const [api, setApi] = useState<APIDefinition | null | undefined>(undefined);
+  const [api, setApi] = useState<ApiSpec | null | undefined>(undefined);
   useEffect(() => {
     if (!tenantId || !apiId) return;
     setApi(undefined);
@@ -433,6 +434,13 @@ export default function ApiDetailPage() {
                   </div>
                 )}
               </div>
+
+              <button
+                onClick={() => navigate(`/tenants/${tenantId}/apis`)}
+                className="px-4 py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-semibold hover:bg-white/20 whitespace-nowrap transition"
+              >
+                Back to APIs
+              </button>
             </div>
           </div>
 
