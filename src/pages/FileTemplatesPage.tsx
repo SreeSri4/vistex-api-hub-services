@@ -97,11 +97,11 @@ export default function FileTemplatesPage() {
   }, [filtered, compareMode]);
 
   return (
-    <div className="w-full px-6 md:px-10 lg:px-16 py-10">
+    <div className="w-full px-6 md:px-10 lg:px-16 pt-0 pb-10">
       <TenantTabsHeader />
 
       {templates.length > 0 && (
-        <div className="flex justify-end items-center gap-3 mt-6">
+        <div className="flex justify-end items-center gap-3 mt-4">
           {compareMode ? (
             <>
               <button

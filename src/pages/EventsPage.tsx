@@ -46,11 +46,11 @@ export default function EventsPage() {
   }, [events, query]);
 
   return (
-    <div className="w-full px-6 md:px-10 lg:px-16 py-10">
+    <div className="w-full px-6 md:px-10 lg:px-16 pt-0 pb-10">
       <TenantTabsHeader />
 
       {events.length > 0 && (
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-end mt-4">
           <SearchInput value={query} onChange={setQuery} placeholder="Find an Event" label="Search events" />
         </div>
       )}

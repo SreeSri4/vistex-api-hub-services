@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useTenantData } from "../context/TenantDataContext";
 import { compareFileTemplates } from "../services/fileTemplateDiff";
 import type { FileTemplateSpec, FileTemplateDiffResult, SectionDiff, MappingDiff, FieldChange } from "../types/tenant";
 
@@ -156,8 +155,6 @@ export default function FileTemplateComparePage() {
   const { tenantId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { getTenant } = useTenantData();
-  const tenant = getTenant(tenantId!);
 
   const tpl1Id = searchParams.get("tpl1");
   const tpl2Id = searchParams.get("tpl2");
@@ -223,7 +220,7 @@ export default function FileTemplateComparePage() {
           onClick={() => navigate(`/tenants/${tenantId}/file-templates`)}
           className="text-blue-700 hover:underline mt-2"
         >
-          Back to File Templates
+          ← Back to File Templates
         </button>
       </div>
     );
@@ -237,21 +234,6 @@ export default function FileTemplateComparePage() {
   return (
     <div className="min-h-screen bg-vistex-canvas">
       <div className="sticky top-12 z-40">
-        <div className="bg-[#0f2847] text-[#9fb8d9] text-xs px-6 md:px-10 lg:px-16 py-2 flex items-center gap-2 overflow-x-auto">
-          <button onClick={() => navigate("/")} className="hover:text-white whitespace-nowrap">
-            Tenants
-          </button>
-          <span aria-hidden="true">&rsaquo;</span>
-          <button
-            onClick={() => navigate(`/tenants/${tenantId}/file-templates`)}
-            className="hover:text-white whitespace-nowrap"
-          >
-            {tenant?.name ?? tenantId}
-          </button>
-          <span aria-hidden="true">&rsaquo;</span>
-          <span className="text-white font-medium whitespace-nowrap">Compare File Templates</span>
-        </div>
-
         <div className="bg-gradient-to-r from-[#0f2847] via-[#1a3e6f] to-[#2a5298] text-white px-6 md:px-10 lg:px-16 py-5 shadow-md">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -271,7 +253,7 @@ export default function FileTemplateComparePage() {
               onClick={() => navigate(`/tenants/${tenantId}/file-templates`)}
               className="px-4 py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-semibold hover:bg-white/20 whitespace-nowrap transition"
             >
-              Back to File Templates
+              ← Back to File Templates
             </button>
           </div>
         </div>

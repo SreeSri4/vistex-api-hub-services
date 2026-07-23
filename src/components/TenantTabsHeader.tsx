@@ -23,19 +23,26 @@ export function TenantTabsHeader() {
 
   return (
     <div>
-      <button
-        onClick={() => navigate("/")}
-        className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-blue-700 transition-colors mb-4"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        Tenants
-      </button>
-      <h1 className="text-slate-900">{tenant?.name ?? tenantId}</h1>
-      {tenant?.description && <p className="text-slate-600 mt-1">{tenant.description}</p>}
+      <div className="bg-gradient-to-r from-[#0f2847] via-[#1a3e6f] to-[#2a5298] text-white px-6 md:px-10 lg:px-16 py-5 shadow-md -mx-6 md:-mx-10 lg:-mx-16">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white leading-tight">
+              {tenant?.name ?? tenantId}
+            </h1>
+            {tenant?.description && (
+              <p className="text-sm text-blue-100/80 mt-1">{tenant.description}</p>
+            )}
+          </div>
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-semibold hover:bg-white/20 whitespace-nowrap transition"
+          >
+            ← Back to Tenants
+          </button>
+        </div>
+      </div>
 
-      <nav className="flex justify-center gap-2 mt-6 border-b border-slate-200 pb-3">
+      <nav className="flex justify-center gap-2 mt-4 border-b border-slate-200 pb-3">
         {TABS.map((tab) => (
           <NavLink
             key={tab.key}

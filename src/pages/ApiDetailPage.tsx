@@ -366,14 +366,6 @@ export default function ApiDetailPage() {
   return (
     <div className="min-h-screen bg-vistex-canvas">
       <div className="sticky top-12 z-40">
-        <div className="bg-[#0f2847] text-[#9fb8d9] text-xs px-6 md:px-10 lg:px-16 py-2 flex items-center gap-2 overflow-x-auto">
-          <button onClick={() => navigate("/")} className="hover:text-white whitespace-nowrap">Tenants</button>
-          <span aria-hidden="true">›</span>
-          <button onClick={() => navigate(`/tenants/${tenantId}/apis`)} className="hover:text-white whitespace-nowrap">{tenant.name}</button>
-          <span aria-hidden="true">›</span>
-          <span className="text-white font-medium whitespace-nowrap">{api.name}</span>
-        </div>
-
         <div className="relative bg-gradient-to-r from-[#0f2847] via-[#1a3e6f] to-[#2a5298] text-white px-6 md:px-10 lg:px-16 py-5 shadow-md">
           <div className="w-full flex items-center justify-between flex-wrap gap-4">
             <div className="min-w-0">
@@ -439,7 +431,7 @@ export default function ApiDetailPage() {
                 onClick={() => navigate(`/tenants/${tenantId}/apis`)}
                 className="px-4 py-2 bg-white/10 text-white border border-white/30 rounded-lg text-sm font-semibold hover:bg-white/20 whitespace-nowrap transition"
               >
-                Back to APIs
+                ← Back to APIs
               </button>
             </div>
           </div>
