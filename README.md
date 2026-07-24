@@ -10,6 +10,8 @@ A centralized web application for managing, exploring, and documenting APIs acro
 - Interactive Swagger/OpenAPI documentation
 - Tenant summary dashboard
 - API details with endpoint documentation
+- **API version comparison** — compare two versions of the same API side-by-side with field-level diffs
+- **File Template version comparison** — compare two versions of the same file template with section/mapping-level diffs
 - Event catalog
 - File template management
 - JSON configuration registration via backend service endpoints
@@ -88,12 +90,16 @@ src/
 │   ├── TenantsPage.tsx
 │   ├── ApisPage.tsx
 │   ├── ApiDetailPage.tsx
+│   ├── ApiComparePage.tsx          # API version comparison
 │   ├── EventsPage.tsx
 │   ├── FileTemplatesPage.tsx
-│   └── FileTemplateDetailPage.tsx
+│   ├── FileTemplateDetailPage.tsx
+│   └── FileTemplateComparePage.tsx # File template version comparison
 │
 ├── services/
 │   ├── specConverter.ts
+│   ├── apiDiff.ts                  # API diff logic
+│   ├── fileTemplateDiff.ts         # File template diff logic
 │   └── fileTemplateCodes.ts
 │
 ├── shared/
@@ -139,12 +145,18 @@ TenantDataContext
         ├───────────────┬────────────────┐
         ▼               ▼                ▼
     APIs Page      Events Page   File Templates Page
-        │
-        ▼
-   API Details
-        │
-        ▼
-Swagger Viewer + Download Spec
+        │                                   │
+        ├─[Select API]                      ├─[Select Template]
+        │                                   │
+        ▼                                   ▼
+   API Details                       Template Details
+        │                                   │
+        ├─[Compare Mode]                   ├─[Compare Mode]
+        │    └─► Pick 2 same-name APIs     │    └─► Pick 2 same-name templates
+        │         │                        │         │
+        ▼         ▼                        ▼         ▼
+Swagger        API Compare Page     Sections   Template Compare Page
+Viewer
 ```
 
 ---
@@ -265,6 +277,41 @@ which adapts to whichever format that template uses:
   silently dropped.
 - **Legacy format** — a plain field table (name/type/required/description)
   plus the sample content block, same as before.
+
+---
+
+## Version Comparison
+
+Both APIs and File Templates support side-by-side version comparison. Each
+listing page has a **Compare Versions** button that enters compare mode — in
+this mode, APIs/templates are grouped by name and only same-name pairs can be
+selected (mismatched items are visually dimmed).
+
+### API Comparison
+
+Selecting two versions of the same API opens `ApiComparePage`, which shows:
+
+- **Metadata** — version, description, host, base path, schemes, tags
+  (unchanged/new values shown with green/red)
+- **Endpoints** — new/removed/changed paths
+- **Parameters** — changes at the path+method level
+- **Request Body** — media type and schema changes
+- **Response Codes** — new/removed/changed status codes
+- **Response Schemas** — recursive JSON Schema diffs with `field` →
+  `old value` → `new value` rows, including nested object/array changes
+  tracked by path
+
+### File Template Comparison
+
+Selecting two versions of the same file template opens
+`FileTemplateComparePage`, which shows:
+
+- **Metadata** — application, API name, API type, description
+- **Sections** — new/removed/changed sections with child section details
+- **Mappings** — per-field diffs (field name, description, mask, reference,
+  default value, download as, required, parent section) plus human-readable
+  badges for coded fields (`mappingType`, `conversions`, `apiType`,
+  `mandatory`)
 
 This page also has its **own breadcrumb** (`Tenants › {tenant} › File
 Templates › {template name}`) plus a dedicated "← Back to File Templates"
@@ -853,7 +900,6 @@ through `dataStore.ts`'s helpers.
 # Future Enhancements
 
 - Search across tenants
-- API version comparison
 - Authentication support
 - API testing from browser
 - Role-based access
